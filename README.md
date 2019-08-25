@@ -1,5 +1,3 @@
-# UnsafeCollections
-
 A collection of collections for 'unsafe' C# code
 
 ## Currently Implemented
@@ -13,9 +11,9 @@ A collection of collections for 'unsafe' C# code
 - Max Heap
 - Hash Map
 - Hash Set
-- Ordered Map
+- Ordered Map (Not Complete, Public API Missing)
 - Ordered Set
 
-## Note
+## Beta
 
 Current status is beta quality, there will probably be a bug here and there. You're welcome to fix and PR.
