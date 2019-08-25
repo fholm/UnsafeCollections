@@ -1,4 +1,4 @@
-A collection of collections for 'unsafe' C# code
+A collection of collections for 'unsafe' C# code, original made for the Unity game engine but can be used under .NET Framework/.NET Core by replacing the methods in AllocHelper.cs with .NET Standard 2.0 counterparts.
 
 ## Currently Implemented
 
@@ -16,4 +16,4 @@ A collection of collections for 'unsafe' C# code
 
 ## Beta
 
-Current status is beta quality, there will probably be a bug here and there. You're welcome to fix and PR.
+Current status is beta quality, there will probably be a bug here and there, missing API in a few places, etc. You're welcome to fix and PR.
