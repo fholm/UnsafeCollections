@@ -6,6 +6,7 @@ A collection of collections for 'unsafe' C# code, original made for the Unity ga
 - List
 - Stack
 - Queue
+- Bit Set
 - Ring Buffer
 - Min Heap
 - Max Heap
