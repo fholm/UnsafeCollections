@@ -14,6 +14,11 @@ A collection of collections for 'unsafe' C# code, original made for the Unity ga
 - Ordered Map (Not Complete, Public API Missing)
 - Ordered Set
 
+## Planned Additions
+
+- Concurrent Single Producer Single Consumer Queue (SPCS)
+- Concurrent Multi Producer Single Consumer Queue (MPSC)
+
 ## Beta
 
 Current status is beta quality, there will probably be a bug here and there, missing API in a few places, etc. You're welcome to fix and PR.
