@@ -124,6 +124,8 @@ namespace Collections.Unsafe {
           SetKeyVal(heap, parentIndex, key,       val);
 
           bubbleIndex = parentIndex;
+        } else {
+          break;
         }
       }
 
@@ -142,7 +144,9 @@ namespace Collections.Unsafe {
       heap->_count = heap->_count - 1;
 
       GetKeyVal(heap, 1, out key, out val);
-      SetKeyVal(heap, heap->_count, key, val);
+      //the last node will be placed on top and then swapped downwards as far as necessarry
+      GetKeyVal(heap, heap->_count, out K evacuateKey, out V evacuateVal);
+      SetKeyVal(heap, 1, evacuateKey, evacuateVal);
 
       var swapItem = 1;
       var parent   = 1;
@@ -330,6 +334,8 @@ namespace Collections.Unsafe {
           SetKeyVal(heap, parentIndex, key,       val);
 
           bubbleIndex = parentIndex;
+        } else {
+          break;
         }
       }
 
@@ -348,7 +354,9 @@ namespace Collections.Unsafe {
       heap->_count = heap->_count - 1;
 
       GetKeyVal(heap, 1, out key, out val);
-      SetKeyVal(heap, heap->_count, key, val);
+      //the last node will be placed on top and then swapped downwards as far as necessarry
+      GetKeyVal(heap, heap->_count, out K evacuateKey, out V evacuateVal);
+      SetKeyVal(heap, 1, evacuateKey, evacuateVal);
 
       var swapItem = 1;
       var parent   = 1;
