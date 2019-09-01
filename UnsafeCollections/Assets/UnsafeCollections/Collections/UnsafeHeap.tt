@@ -112,7 +112,7 @@ heaps.Add(new Heap { Name = "UnsafeHeapMin", ComparisonPush = ">", ComparisonPop
 
     public static int Capacity(<#=heap.Name#>* heap)
     {
-      return heap->_items.Length;
+      return heap->_items.Length - 1;
     }
 
     public static int Count(<#=heap.Name#>* heap)

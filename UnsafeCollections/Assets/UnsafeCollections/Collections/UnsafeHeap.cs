@@ -100,7 +100,7 @@ namespace Collections.Unsafe {
 
     public static int Capacity(UnsafeHeapMax* heap)
     {
-      return heap->_items.Length;
+      return heap->_items.Length - 1;
     }
 
     public static int Count(UnsafeHeapMax* heap)
@@ -325,7 +325,7 @@ namespace Collections.Unsafe {
 
     public static int Capacity(UnsafeHeapMin* heap)
     {
-      return heap->_items.Length;
+      return heap->_items.Length - 1;
     }
 
     public static int Count(UnsafeHeapMin* heap)
