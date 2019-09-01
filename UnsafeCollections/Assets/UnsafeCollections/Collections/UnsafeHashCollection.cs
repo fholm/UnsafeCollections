@@ -243,7 +243,18 @@ namespace Collections.Unsafe {
       // done!
       return entry;
     }
+    
+    public static void Clear(UnsafeHashCollection* collection)
+    {
+      collection->FreeCount = 0;
+      collection->UsedCount = 0;
 
+      var length = collection->Entries.Length; 
+      
+      AllocHelper.MemClear(collection->Buckets, length * sizeof(Entry**));
+      UnsafeBuffer.Clear(&collection->Entries);
+    }
+    
     static void Expand(UnsafeHashCollection* collection) {
       Assert.Check(collection->Entries.Dynamic);
 

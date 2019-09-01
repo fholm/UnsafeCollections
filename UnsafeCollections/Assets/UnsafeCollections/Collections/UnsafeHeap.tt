@@ -110,6 +110,21 @@ heaps.Add(new Heap { Name = "UnsafeHeapMin", ComparisonPush = ">", ComparisonPop
       AllocHelper.Free(heap);
     }
 
+    public static int Capacity(<#=heap.Name#>* heap)
+    {
+      return heap->_items.Length;
+    }
+
+    public static int Count(<#=heap.Name#>* heap)
+    {
+      return heap->_count - 1;
+    }
+
+    public static void Clear(<#=heap.Name#>* heap)
+    {
+      heap->_count = 1;
+    }
+
     public static void Push<K, V>(<#=heap.Name#>* heap, K key, V val)
       where K : unmanaged, IComparable<K>
       where V : unmanaged {

@@ -96,6 +96,11 @@ namespace Collections.Unsafe {
       return set->_collection.UsedCount - set->_collection.FreeCount;
     }
 
+    public static void Clear(UnsafeHashSet* set)
+    {
+      UnsafeHashCollection.Clear(&set->_collection);
+    }
+
     public static bool Add<T>(UnsafeHashSet* set, T key)
       where T : unmanaged, IEquatable<T> {
       var hash  = key.GetHashCode();
