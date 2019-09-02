@@ -111,6 +111,16 @@ namespace Collections.Unsafe {
 
       return map;
     }
+    
+    public static void Free(UnsafeHashMap* set)
+    {
+      if (set->_collection.Entries.Dynamic)
+      {
+        UnsafeHashCollection.Free(&set->_collection);
+      }
+      
+      AllocHelper.Free(set);
+    }
 
     public static Iterator<K, V> GetIterator<K, V>(UnsafeHashMap* map)
       where K : unmanaged

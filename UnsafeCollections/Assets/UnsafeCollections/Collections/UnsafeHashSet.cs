@@ -88,6 +88,16 @@ namespace Collections.Unsafe {
       return set;
     }
 
+    public static void Free(UnsafeHashSet* set)
+    {
+      if (set->_collection.Entries.Dynamic)
+      {
+        UnsafeHashCollection.Free(&set->_collection);
+      }
+      
+      AllocHelper.Free(set);
+    }
+
     public static int Capacity(UnsafeHashSet* set) {
       return set->_collection.Entries.Length;
     }

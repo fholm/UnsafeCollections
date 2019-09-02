@@ -17,6 +17,20 @@ namespace Collections.Unsafe
         }
 
         [Test]
+        public void FreeFixedSet()
+        {
+            var s = UnsafeHashSet.Allocate<int>(2, true);
+            UnsafeHashSet.Free(s);
+        }
+
+        [Test]
+        public void FreeDynamicSet()
+        {
+            var s = UnsafeHashSet.Allocate<int>(2, false);
+            UnsafeHashSet.Free(s);
+        }
+
+        [Test]
         public void ClearHashSet()
         {
             var set = Set(1, 2, 3);
@@ -48,6 +62,20 @@ namespace Collections.Unsafe
             }
 
             return c;
+        }
+
+        [Test]
+        public void FreeFixedMap()
+        {
+            var s = UnsafeHashMap.Allocate<int, int>(2, true);
+            UnsafeHashMap.Free(s);
+        }
+
+        [Test]
+        public void FreeDynamicMap()
+        {
+            var s = UnsafeHashMap.Allocate<int, int>(2, false);
+            UnsafeHashMap.Free(s);
         }
 
         [Test]
