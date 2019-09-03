@@ -88,12 +88,27 @@ namespace Collections.Unsafe {
       return set;
     }
 
+    public static void Free(UnsafeHashSet* set)
+    {
+      if (set->_collection.Entries.Dynamic)
+      {
+        UnsafeHashCollection.Free(&set->_collection);
+      }
+      
+      AllocHelper.Free(set);
+    }
+
     public static int Capacity(UnsafeHashSet* set) {
       return set->_collection.Entries.Length;
     }
 
     public static int Count(UnsafeHashSet* set) {
       return set->_collection.UsedCount - set->_collection.FreeCount;
+    }
+
+    public static void Clear(UnsafeHashSet* set)
+    {
+      UnsafeHashCollection.Clear(&set->_collection);
     }
 
     public static bool Add<T>(UnsafeHashSet* set, T key)

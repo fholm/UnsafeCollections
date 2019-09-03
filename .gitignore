@@ -1,1 +1,7 @@
 .DS_Store
+UnsafeCollections/.idea/
+UnsafeCollections/Library/
+UnsafeCollections/obj/
+UnsafeCollections/Temp/
+*.sln
+*.csproj

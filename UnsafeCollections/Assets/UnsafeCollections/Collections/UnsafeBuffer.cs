@@ -52,6 +52,11 @@ namespace Collections.Unsafe {
       *buffer = default;
     }
 
+    public static void Clear(UnsafeBuffer* buffer)
+    {
+      AllocHelper.MemClear(buffer->Ptr, buffer->Length * buffer->Stride);
+    }
+
     public static void InitFixed(UnsafeBuffer* buffer, void* ptr, int length, int stride) {
       Assert.Check(buffer != null);
       Assert.Check(ptr != null);

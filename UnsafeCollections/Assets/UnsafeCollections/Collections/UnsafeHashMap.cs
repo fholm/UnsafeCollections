@@ -39,6 +39,11 @@ namespace Collections.Unsafe {
 
     public static int Count(UnsafeHashMap* map) {
       return map->_collection.UsedCount - map->_collection.FreeCount;
+    }    
+    
+    public static void Clear(UnsafeHashMap* set)
+    {
+      UnsafeHashCollection.Clear(&set->_collection);
     }
 
     public static UnsafeHashMap* Allocate<K, V>(int capacity, bool fixedSize = false)
@@ -105,6 +110,16 @@ namespace Collections.Unsafe {
       map->_valueOffset = entryStride + keyStride;
 
       return map;
+    }
+    
+    public static void Free(UnsafeHashMap* set)
+    {
+      if (set->_collection.Entries.Dynamic)
+      {
+        UnsafeHashCollection.Free(&set->_collection);
+      }
+      
+      AllocHelper.Free(set);
     }
 
     public static Iterator<K, V> GetIterator<K, V>(UnsafeHashMap* map)

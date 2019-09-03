@@ -98,6 +98,21 @@ namespace Collections.Unsafe {
       AllocHelper.Free(heap);
     }
 
+    public static int Capacity(UnsafeHeapMax* heap)
+    {
+      return heap->_items.Length - 1;
+    }
+
+    public static int Count(UnsafeHeapMax* heap)
+    {
+      return heap->_count - 1;
+    }
+
+    public static void Clear(UnsafeHeapMax* heap)
+    {
+      heap->_count = 1;
+    }
+
     public static void Push<K, V>(UnsafeHeapMax* heap, K key, V val)
       where K : unmanaged, IComparable<K>
       where V : unmanaged {
@@ -306,6 +321,21 @@ namespace Collections.Unsafe {
 
       // free heap
       AllocHelper.Free(heap);
+    }
+
+    public static int Capacity(UnsafeHeapMin* heap)
+    {
+      return heap->_items.Length - 1;
+    }
+
+    public static int Count(UnsafeHeapMin* heap)
+    {
+      return heap->_count - 1;
+    }
+
+    public static void Clear(UnsafeHeapMin* heap)
+    {
+      heap->_count = 1;
     }
 
     public static void Push<K, V>(UnsafeHeapMin* heap, K key, V val)

@@ -129,6 +129,14 @@ namespace Collections.Unsafe {
       throw new InvalidOperationException($"HashCollection can't get larger than {_primeTable[_primeTable.Length - 1]}");
     }
 
+    public static void Free(UnsafeHashCollection* collection)
+    {
+      Assert.Check(collection->Entries.Dynamic);
+      
+      AllocHelper.Free(collection->Buckets);
+      AllocHelper.Free(collection->Entries.Ptr);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Entry* GetEntry(UnsafeHashCollection* collection, int index) {
       return (Entry*)UnsafeBuffer.Element(collection->Entries.Ptr, index, collection->Entries.Stride);
@@ -243,7 +251,18 @@ namespace Collections.Unsafe {
       // done!
       return entry;
     }
+    
+    public static void Clear(UnsafeHashCollection* collection)
+    {
+      collection->FreeCount = 0;
+      collection->UsedCount = 0;
 
+      var length = collection->Entries.Length; 
+      
+      AllocHelper.MemClear(collection->Buckets, length * sizeof(Entry**));
+      UnsafeBuffer.Clear(&collection->Entries);
+    }
+    
     static void Expand(UnsafeHashCollection* collection) {
       Assert.Check(collection->Entries.Dynamic);
 
