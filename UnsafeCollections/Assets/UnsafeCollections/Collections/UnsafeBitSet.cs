@@ -170,17 +170,17 @@ namespace Collections.Unsafe {
         var word32Count = 0;
 
         NEXT_WORD32:
-        var word32 = *((uint*)word64 + word32Count);
+        var word32 = *((uint*)&word64 + word32Count);
         if (word32 != 0) {
           var word16Count = 0;
 
           NEXT_WORD16:
-          var word16 = *((ushort*)word32 + word16Count);
+          var word16 = *((ushort*)&word32 + word16Count);
           if (word16 != 0) {
             var word8Count = 0;
 
             NEXT_WORD8:
-            var word8 = *((byte*)word16 + word8Count);
+            var word8 = *((byte*)&word16 + word8Count);
             if (word8 != 0) {
               if ((word8 & (1 << 0)) == 1 << 0) arrayBuffer[setCount++] = (bitOffset + 0);
               if ((word8 & (1 << 1)) == 1 << 1) arrayBuffer[setCount++] = (bitOffset + 1);
