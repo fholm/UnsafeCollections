@@ -256,6 +256,7 @@ namespace Collections.Unsafe {
     
     public static void Clear(UnsafeHashCollection* collection)
     {
+      collection->FreeHead  = null;
       collection->FreeCount = 0;
       collection->UsedCount = 0;
 
