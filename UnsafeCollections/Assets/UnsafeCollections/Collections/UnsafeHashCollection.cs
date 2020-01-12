@@ -229,6 +229,9 @@ namespace Collections.Unsafe {
         // grab 'next' element maintained by _count
         entry = (Entry*)UnsafeBuffer.Element(collection->Entries.Ptr, collection->UsedCount, collection->Entries.Stride);
 
+        // step up used count
+        collection->UsedCount = collection->UsedCount + 1;
+
         // this HAS to be a NONE state entry, or something is seriously wrong
         Assert.Check(entry->State == EntryState.None);
       }
@@ -246,7 +249,6 @@ namespace Collections.Unsafe {
 
       // store as head on bucket
       collection->Buckets[bucketHash] = entry;
-      collection->UsedCount           = collection->UsedCount + 1;
 
       // done!
       return entry;
