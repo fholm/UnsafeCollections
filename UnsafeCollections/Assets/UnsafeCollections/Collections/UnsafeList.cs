@@ -70,6 +70,10 @@ namespace Collections.Unsafe {
       list->_count = 0;
       return list;
     }
+    
+    public static void Free(UnsafeList* list) {
+      AllocHelper.Free(list);
+    }
 
     public static int Count(UnsafeList* list) {
       Assert.Check(list != null);
