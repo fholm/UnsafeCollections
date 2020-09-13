@@ -82,7 +82,7 @@ namespace Collections.Unsafe {
     public static int RoundUpToAlignment(int size, int alignment) {
       switch (alignment) {
         case 1:  return size;
-        case 2:  return ((size + 1) >> 1) * 4;
+        case 2:  return ((size + 1) >> 1) * 2;
         case 4:  return ((size + 3) >> 2) * 4;
         case 8:  return ((size + 7) >> 3) * 8;
         case 16: return ((size + 15) >> 4) * 16;
