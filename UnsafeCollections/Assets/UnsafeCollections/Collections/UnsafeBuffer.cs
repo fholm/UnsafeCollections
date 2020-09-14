@@ -33,12 +33,12 @@ namespace Collections.Unsafe {
 
     public int  Length;
     public int  Stride;
-    public bool Dynamic;
+    public int Dynamic;
 
     public static void Free(UnsafeBuffer* buffer) {
       Assert.Check(buffer != null);
 
-      if (buffer->Dynamic == false) {
+      if (buffer->Dynamic == 0) {
         throw new InvalidOperationException("Can't free a fixed buffer");
       }
 
@@ -70,7 +70,7 @@ namespace Collections.Unsafe {
       buffer->Ptr     = ptr;
       buffer->Length  = length;
       buffer->Stride  = stride;
-      buffer->Dynamic = false;
+      buffer->Dynamic = 0;
     }
 
     public static void InitDynamic<T>(UnsafeBuffer* buffer, int length) where T : unmanaged {
@@ -85,7 +85,7 @@ namespace Collections.Unsafe {
       buffer->Ptr     = Native.MallocAndClear(length * stride, Native.GetAlignment(stride));
       buffer->Length  = length;
       buffer->Stride  = stride;
-      buffer->Dynamic = true;
+      buffer->Dynamic = 1;
     }
 
     public static void Copy(UnsafeBuffer source, int sourceIndex, UnsafeBuffer destination, int destinationIndex, int count) {

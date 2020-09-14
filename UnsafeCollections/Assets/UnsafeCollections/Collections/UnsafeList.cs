@@ -52,7 +52,7 @@ namespace Collections.Unsafe {
         var sizeOfBuffer = stride * capacity;
 
         // allocate memory for list and array with the correct alignment
-        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, Native.MAX_ALIGNMENT);
 
         // grab header ptr
         list = (UnsafeList*)ptr;
@@ -92,13 +92,13 @@ namespace Collections.Unsafe {
 
     public static bool IsFixedSize(UnsafeList* list) {
       Assert.Check(list != null);
-      return list->_items.Dynamic == false;
+      return list->_items.Dynamic == 0;
     }
 
     public static void SetCapacity(UnsafeList* list, int capacity) {
       Assert.Check(list != null);
 
-      if (list->_items.Dynamic == false) {
+      if (list->_items.Dynamic == 0) {
         throw new InvalidOperationException(LIST_FIXED_CANT_CHANGE_CAPACITY);
       }
 
@@ -162,7 +162,7 @@ namespace Collections.Unsafe {
         return;
       }
 
-      if (list->_items.Dynamic == false) {
+      if (list->_items.Dynamic == 0) {
         throw new InvalidOperationException(LIST_FULL);
       }
 

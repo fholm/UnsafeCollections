@@ -87,7 +87,7 @@ namespace Collections.Unsafe {
       }
 
       // free dynamic items separately
-      if (heap->_items.Dynamic) {
+      if (heap->_items.Dynamic == 1) {
         UnsafeBuffer.Free(&heap->_items);
       }
 
@@ -117,7 +117,7 @@ namespace Collections.Unsafe {
       where K : unmanaged, IComparable<K>
       where V : unmanaged {
       if (heap->_count == heap->_items.Length) {
-        if (heap->_items.Dynamic) {
+        if (heap->_items.Dynamic == 1) {
           ExpandHeap(heap);
         } else {
           throw new InvalidOperationException(HEAP_FULL);
@@ -230,7 +230,7 @@ namespace Collections.Unsafe {
     }
 
     static void ExpandHeap(UnsafeHeapMax* heap) {
-      Assert.Check(heap->_items.Dynamic);
+      Assert.Check(heap->_items.Dynamic == 1);
 
       // new buffer for elements
       UnsafeBuffer newItems = default;
@@ -312,7 +312,7 @@ namespace Collections.Unsafe {
       }
 
       // free dynamic items separately
-      if (heap->_items.Dynamic) {
+      if (heap->_items.Dynamic == 1) {
         UnsafeBuffer.Free(&heap->_items);
       }
 
@@ -342,7 +342,7 @@ namespace Collections.Unsafe {
       where K : unmanaged, IComparable<K>
       where V : unmanaged {
       if (heap->_count == heap->_items.Length) {
-        if (heap->_items.Dynamic) {
+        if (heap->_items.Dynamic == 1) {
           ExpandHeap(heap);
         } else {
           throw new InvalidOperationException(HEAP_FULL);
@@ -455,7 +455,7 @@ namespace Collections.Unsafe {
     }
 
     static void ExpandHeap(UnsafeHeapMin* heap) {
-      Assert.Check(heap->_items.Dynamic);
+      Assert.Check(heap->_items.Dynamic == 1);
 
       // new buffer for elements
       UnsafeBuffer newItems = default;

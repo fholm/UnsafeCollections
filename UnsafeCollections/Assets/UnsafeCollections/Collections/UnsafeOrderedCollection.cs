@@ -62,7 +62,7 @@ namespace Collections.Unsafe {
 
     public static void Insert<T>(UnsafeOrderedCollection* collection, T key) where T : unmanaged, IComparable<T> {
       if (collection->FreeCount == 0 && collection->UsedCount == collection->Entries.Length) {
-        if (collection->Entries.Dynamic) {
+        if (collection->Entries.Dynamic == 1) {
           Expand(collection);
         } else {
           throw new InvalidOperationException(COLLECTION_FULL);
@@ -120,7 +120,7 @@ namespace Collections.Unsafe {
     }
 
     static void Expand(UnsafeOrderedCollection* collection) {
-      Assert.Check(collection->Entries.Dynamic);
+      Assert.Check(collection->Entries.Dynamic == 1);
       Assert.Check(collection->FreeCount == 0);
       Assert.Check(collection->FreeHead == 0);
 

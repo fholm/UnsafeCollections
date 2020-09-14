@@ -131,7 +131,7 @@ namespace Collections.Unsafe {
 
     public static void Free(UnsafeHashCollection* collection)
     {
-      Assert.Check(collection->Entries.Dynamic);
+      Assert.Check(collection->Entries.Dynamic == 1);
       
       Native.Free(collection->Buckets);
       Native.Free(collection->Entries.Ptr);
@@ -267,7 +267,7 @@ namespace Collections.Unsafe {
     }
     
     static void Expand(UnsafeHashCollection* collection) {
-      Assert.Check(collection->Entries.Dynamic);
+      Assert.Check(collection->Entries.Dynamic == 1);
 
       var capacity = GetNextPrime(collection->Entries.Length);
 

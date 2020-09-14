@@ -81,7 +81,7 @@ namespace Collections.Unsafe {
       Assert.Check(stack != null);
 
       // if this is a dynamic sized stack, we need to free the buffer by hand
-      if (stack->_items.Dynamic) {
+      if (stack->_items.Dynamic == 1) {
         UnsafeBuffer.Free(&stack->_items);
       }
 
@@ -112,7 +112,7 @@ namespace Collections.Unsafe {
 
     public static bool IsFixedSize(UnsafeStack* stack) {
       Assert.Check(stack != null);
-      return stack->_items.Dynamic == false;
+      return stack->_items.Dynamic == 0;
     }
 
     public static void Push<T>(UnsafeStack* stack, T item) where T : unmanaged {
@@ -121,7 +121,7 @@ namespace Collections.Unsafe {
       var items = stack->_items;
       var count = stack->_count;
       if (count >= items.Length) {
-        if (items.Dynamic) {
+        if (items.Dynamic == 1) {
           Expand(stack);
 
           // re-assign items after expand

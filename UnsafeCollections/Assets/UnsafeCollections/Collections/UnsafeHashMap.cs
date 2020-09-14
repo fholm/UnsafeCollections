@@ -112,10 +112,8 @@ namespace Collections.Unsafe {
       return map;
     }
     
-    public static void Free(UnsafeHashMap* set)
-    {
-      if (set->_collection.Entries.Dynamic)
-      {
+    public static void Free(UnsafeHashMap* set) {
+      if (set->_collection.Entries.Dynamic == 1) {
         UnsafeHashCollection.Free(&set->_collection);
       }
       

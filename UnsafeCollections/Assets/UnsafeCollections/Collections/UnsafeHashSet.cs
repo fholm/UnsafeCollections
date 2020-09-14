@@ -88,10 +88,8 @@ namespace Collections.Unsafe {
       return set;
     }
 
-    public static void Free(UnsafeHashSet* set)
-    {
-      if (set->_collection.Entries.Dynamic)
-      {
+    public static void Free(UnsafeHashSet* set) {
+      if (set->_collection.Entries.Dynamic == 1) {
         UnsafeHashCollection.Free(&set->_collection);
       }
       

@@ -76,7 +76,7 @@ namespace Collections.Unsafe {
     }
 
     public static void Free(UnsafeOrderedSet* set) {
-      if (set->_collection.Entries.Dynamic) {
+      if (set->_collection.Entries.Dynamic == 1) {
         UnsafeBuffer.Free(&set->_collection.Entries);
       }
 

@@ -82,7 +82,7 @@ namespace Collections.Unsafe {
       }
 
       // not fixed, we need to free items separtely 
-      if (queue->_items.Dynamic) {
+      if (queue->_items.Dynamic == 1) {
         UnsafeBuffer.Free(&queue->_items);
       }
 
@@ -115,7 +115,7 @@ namespace Collections.Unsafe {
 
     public static bool IsFixedSize(UnsafeQueue* queue) {
       Assert.Check(queue != null);
-      return queue->_items.Dynamic == false;
+      return queue->_items.Dynamic == 0;
     }
 
     public static void Enqueue<T>(UnsafeQueue* queue, T item) where T : unmanaged {
@@ -126,7 +126,7 @@ namespace Collections.Unsafe {
       var items = queue->_items;
 
       if (count == items.Length) {
-        if (items.Dynamic) {
+        if (items.Dynamic == 1) {
           Expand(queue, items.Length * 2);
 
           // re-assign items after capacity expanded
@@ -146,7 +146,7 @@ namespace Collections.Unsafe {
     }
 
     public static bool TryEnqueue<T>(UnsafeQueue* queue, T item) where T : unmanaged {
-      if (queue->_count == queue->_items.Length && queue->_items.Dynamic == false) {
+      if (queue->_count == queue->_items.Length && queue->_items.Dynamic == 0) {
         return false;
       }
 
@@ -223,7 +223,7 @@ namespace Collections.Unsafe {
       Assert.Check(capacity > 0);
 
       // queue has to be dynamic and capacity we're going to have to be larger
-      Assert.Check(queue->_items.Dynamic);
+      Assert.Check(queue->_items.Dynamic == 1);
       Assert.Check(queue->_items.Length < capacity);
 
       // new buffer for elements
