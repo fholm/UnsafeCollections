@@ -30,10 +30,10 @@ namespace Collections.Unsafe {
     UnsafeBuffer _items;
 #pragma warning restore 649
 
-    int  _head;
-    int  _tail;
-    int  _count;
-    bool _overwrite;
+    int _head;
+    int _tail;
+    int _count;
+    int _overwrite;
 
     public static UnsafeRingBuffer* Allocate<T>(int capacity, bool overwrite) where T : unmanaged {
       return Allocate(capacity, sizeof(T), overwrite);
@@ -54,14 +54,14 @@ namespace Collections.Unsafe {
       var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
 
       // grab header ptr
-      var ring = (UnsafeRingBuffer*)ptr;
+      var ring = (UnsafeRingBuffer*) ptr;
 
       // initialize fixed buffer from same block of memory as the collection, offset by sizeOfHeader
-      UnsafeBuffer.InitFixed(&ring->_items, (byte*)ptr + sizeOfHeader, capacity, stride);
+      UnsafeBuffer.InitFixed(&ring->_items, (byte*) ptr + sizeOfHeader, capacity, stride);
 
       // initialize count to 0
       ring->_count     = 0;
-      ring->_overwrite = overwrite;
+      ring->_overwrite = overwrite ? 1 : 0;
       return ring;
     }
 
@@ -104,35 +104,35 @@ namespace Collections.Unsafe {
 
     public static void Set<T>(UnsafeRingBuffer* ring, int index, T value) where T : unmanaged {
       // cast to uint trick, which eliminates < 0 check
-      if ((uint)index >= (uint)ring->_count) {
+      if ((uint) index >= (uint) ring->_count) {
         throw new IndexOutOfRangeException();
       }
 
       // assign element
-      *(T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride) = value;
+      *(T*) UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride) = value;
     }
 
     public static T Get<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged {
       // cast to uint trick, which eliminates < 0 check
-      if ((uint)index >= (uint)ring->_count) {
+      if ((uint) index >= (uint) ring->_count) {
         throw new IndexOutOfRangeException();
       }
 
-      return *(T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
+      return *(T*) UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
     }
 
     public static T* GetPtr<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged {
       // cast to uint trick, which eliminates < 0 check
-      if ((uint)index >= (uint)ring->_count) {
+      if ((uint) index >= (uint) ring->_count) {
         throw new IndexOutOfRangeException();
       }
 
-      return (T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
+      return (T*) UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
     }
 
     public static bool Push<T>(UnsafeRingBuffer* ring, T item) where T : unmanaged {
       if (ring->_count == ring->_items.Length) {
-        if (ring->_overwrite) {
+        if (ring->_overwrite == 1) {
           ring->_tail  = (ring->_tail + 1) % ring->_items.Length;
           ring->_count = (ring->_count - 1);
         }
@@ -142,7 +142,7 @@ namespace Collections.Unsafe {
       }
 
       // store value at head
-      *(T*)UnsafeBuffer.Element(ring->_items.Ptr, ring->_head, ring->_items.Stride) = item;
+      *(T*) UnsafeBuffer.Element(ring->_items.Ptr, ring->_head, ring->_items.Stride) = item;
 
       // move head pointer forward
       ring->_head = (ring->_head + 1) % ring->_items.Length;
@@ -164,14 +164,14 @@ namespace Collections.Unsafe {
       }
 
       // copy item from tail
-      value = *(T*)UnsafeBuffer.Element(ring->_items.Ptr, ring->_tail, ring->_items.Stride);
+      value = *(T*) UnsafeBuffer.Element(ring->_items.Ptr, ring->_tail, ring->_items.Stride);
 
       // move tail forward and decrement count
       ring->_tail  = (ring->_tail + 1) % ring->_items.Length;
       ring->_count = (ring->_count - 1);
       return true;
     }
-    
+
     public static UnsafeList.Iterator<T> GetIterator<T>(UnsafeRingBuffer* buffer) where T : unmanaged {
       return new UnsafeList.Iterator<T>(buffer->_items, buffer->_tail, buffer->_count);
     }
