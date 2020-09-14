@@ -45,14 +45,14 @@ namespace Collections.Unsafe {
 
       // fixedSize means we are allocating the memory for the collection header and the items in it as one block
       if (fixedSize) {
-        var alignment = AllocHelper.GetAlignmentForArrayElement(stride);
+        var alignment = Native.GetAlignment(stride);
 
         // align header size to the elements alignment
-        var sizeOfHeader = AllocHelper.RoundUpToAlignment(sizeof(UnsafeList), alignment);
+        var sizeOfHeader = Native.RoundToAlignment(sizeof(UnsafeList), alignment);
         var sizeOfBuffer = stride * capacity;
 
         // allocate memory for list and array with the correct alignment
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
 
         // grab header ptr
         list = (UnsafeList*)ptr;
@@ -61,7 +61,7 @@ namespace Collections.Unsafe {
         UnsafeBuffer.InitFixed(&list->_items, (byte*)ptr + sizeOfHeader, capacity, stride);
       } else {
         // allocate collection separately
-        list = AllocHelper.MallocAndClear<UnsafeList>();
+        list = Native.MallocAndClear<UnsafeList>();
 
         // initialize dynamic buffer with separate memory
         UnsafeBuffer.InitDynamic(&list->_items, capacity, stride);
@@ -72,7 +72,7 @@ namespace Collections.Unsafe {
     }
     
     public static void Free(UnsafeList* list) {
-      AllocHelper.Free(list);
+      Native.Free(list);
     }
 
     public static int Count(UnsafeList* list) {

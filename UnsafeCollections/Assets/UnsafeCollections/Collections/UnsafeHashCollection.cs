@@ -133,8 +133,8 @@ namespace Collections.Unsafe {
     {
       Assert.Check(collection->Entries.Dynamic);
       
-      AllocHelper.Free(collection->Buckets);
-      AllocHelper.Free(collection->Entries.Ptr);
+      Native.Free(collection->Buckets);
+      Native.Free(collection->Entries.Ptr);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -262,7 +262,7 @@ namespace Collections.Unsafe {
 
       var length = collection->Entries.Length; 
       
-      AllocHelper.MemClear(collection->Buckets, length * sizeof(Entry**));
+      Native.MemClear(collection->Buckets, length * sizeof(Entry**));
       UnsafeBuffer.Clear(&collection->Entries);
     }
     
@@ -273,7 +273,7 @@ namespace Collections.Unsafe {
 
       Assert.Check(capacity >= collection->Entries.Length);
 
-      var newBuckets = (Entry**)AllocHelper.MallocAndClear(capacity * sizeof(Entry**), sizeof(Entry**));
+      var newBuckets = (Entry**)Native.MallocAndClear(capacity * sizeof(Entry**), sizeof(Entry**));
       var newEntries = default(UnsafeBuffer);
 
       UnsafeBuffer.InitDynamic(&newEntries, capacity, collection->Entries.Stride);
@@ -306,7 +306,7 @@ namespace Collections.Unsafe {
       }
 
       // free old memory
-      AllocHelper.Free(collection->Buckets);
+      Native.Free(collection->Buckets);
       UnsafeBuffer.Free(&collection->Entries);
 
       // new storage

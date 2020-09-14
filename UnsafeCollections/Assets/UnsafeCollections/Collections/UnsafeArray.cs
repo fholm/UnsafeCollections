@@ -41,14 +41,14 @@ namespace Collections.Unsafe {
         throw new InvalidOperationException(ARRAY_SIZE_LESS_THAN_ONE);
       }
 
-      var alignment = AllocHelper.GetAlignmentForArrayElement(sizeof(T));
+      var alignment = Native.GetAlignment(sizeof(T));
 
       // pad the alignment of the array header
-      var arrayStructSize = AllocHelper.RoundUpToAlignment(sizeof(UnsafeArray), alignment);
+      var arrayStructSize = Native.RoundToAlignment(sizeof(UnsafeArray), alignment);
       var arrayMemorySize = size * sizeof(T);
 
       // allocate memory for header + elements, aligned to 'alignment'
-      var ptr = AllocHelper.MallocAndClear(arrayStructSize + arrayMemorySize, alignment);
+      var ptr = Native.MallocAndClear(arrayStructSize + arrayMemorySize, alignment);
 
       UnsafeArray* array;
       array              = (UnsafeArray*)ptr;
@@ -60,7 +60,7 @@ namespace Collections.Unsafe {
     }
 
     public static void Free(UnsafeArray* array) {
-      AllocHelper.Free(array);
+      Native.Free(array);
     }
 
     public static IntPtr GetTypeHandle(UnsafeArray* array) {
@@ -164,7 +164,7 @@ namespace Collections.Unsafe {
       Assert.Check(destination != null);
       Assert.Check(typeof(T).TypeHandle.Value == source->_typeHandle);
       Assert.Check(typeof(T).TypeHandle.Value == destination->_typeHandle);
-      AllocHelper.MemCpy((T*)destination->_buffer + destinationIndex, (T*)source->_buffer + sourceIndex, count * sizeof(T));
+      Native.MemCpy((T*)destination->_buffer + destinationIndex, (T*)source->_buffer + sourceIndex, count * sizeof(T));
     }
 
     public static int IndexOf<T>(UnsafeArray* array, T item) where T : unmanaged, IEquatable<T> {

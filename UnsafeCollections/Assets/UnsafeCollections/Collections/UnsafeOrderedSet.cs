@@ -35,25 +35,25 @@ namespace Collections.Unsafe {
 
     public static UnsafeOrderedSet* Allocate(int capacity, int valStride, bool fixedSize = false) {
       var entryStride  = sizeof(UnsafeOrderedCollection.Entry);
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // the alignment for entry/key/val, we can't have less than ENTRY_ALIGNMENT
       // bytes alignment because entries are 12 bytes with 3 x 32 bit integers
       var alignment = Math.Max(UnsafeOrderedCollection.Entry.ALIGNMENT, valAlignment);
 
       // calculate strides for all elements
-      valStride   = AllocHelper.RoundUpToAlignment(valStride,   alignment);
-      entryStride = AllocHelper.RoundUpToAlignment(entryStride, alignment);
+      valStride   = Native.RoundToAlignment(valStride,   alignment);
+      entryStride = Native.RoundToAlignment(entryStride, alignment);
 
       // dictionary ptr
       UnsafeOrderedSet* set;
 
       if (fixedSize) {
-        var sizeOfHeader        = AllocHelper.RoundUpToAlignment(sizeof(UnsafeOrderedSet), alignment);
+        var sizeOfHeader        = Native.RoundToAlignment(sizeof(UnsafeOrderedSet), alignment);
         var sizeofEntriesBuffer = (entryStride + valStride) * capacity;
 
         // allocate memory
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeofEntriesBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeofEntriesBuffer, alignment);
 
         // start of memory is the set itself
         set = (UnsafeOrderedSet*)ptr;
@@ -62,7 +62,7 @@ namespace Collections.Unsafe {
         UnsafeBuffer.InitFixed(&set->_collection.Entries, (byte*)ptr + sizeOfHeader, capacity, entryStride + valStride);
       } else {
         // allocate set separately
-        set = AllocHelper.MallocAndClear<UnsafeOrderedSet>();
+        set = Native.MallocAndClear<UnsafeOrderedSet>();
 
         // init dynamic buffer
         UnsafeBuffer.InitDynamic(&set->_collection.Entries, capacity, entryStride + valStride);
@@ -84,7 +84,7 @@ namespace Collections.Unsafe {
       *set = default;
       
       // free it
-      AllocHelper.Free(set);
+      Native.Free(set);
     }
 
     public static Iterator<T> GetIterator<T>(UnsafeOrderedSet* set) where T : unmanaged {

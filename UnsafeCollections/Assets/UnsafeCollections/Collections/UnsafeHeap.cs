@@ -46,23 +46,23 @@ namespace Collections.Unsafe {
       capacity += 1;
       
       // get alignment for key/val
-      var keyAlignment = AllocHelper.GetAlignmentForArrayElement(keyStride);
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var keyAlignment = Native.GetAlignment(keyStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // pick the max one as our alignment
       var alignment = Math.Max(keyAlignment, valAlignment);
 
       // align sizes to their respective alignments
-      keyStride = AllocHelper.RoundUpToAlignment(keyStride, alignment);
-      valStride = AllocHelper.RoundUpToAlignment(valStride, alignment);
+      keyStride = Native.RoundToAlignment(keyStride, alignment);
+      valStride = Native.RoundToAlignment(valStride, alignment);
 
       UnsafeHeapMax* heap;
 
       if (fixedSize) {
-        var sizeOfHeader = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHeapMax), alignment);
+        var sizeOfHeader = Native.RoundToAlignment(sizeof(UnsafeHeapMax), alignment);
         var sizeOfBuffer = (keyStride + valStride) * capacity;
 
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
 
         // heap pointer
         heap = (UnsafeHeapMax*)ptr;
@@ -70,7 +70,7 @@ namespace Collections.Unsafe {
         // initialize our fixed buffer
         UnsafeBuffer.InitFixed(&heap->_items, (byte*)ptr + sizeOfHeader, capacity, keyStride + valStride);
       } else {
-        heap = AllocHelper.MallocAndClear<UnsafeHeapMax>();
+        heap = Native.MallocAndClear<UnsafeHeapMax>();
 
         // dynamic buffer (separate memory)
         UnsafeBuffer.InitDynamic(&heap->_items, capacity, keyStride + valStride);
@@ -95,7 +95,7 @@ namespace Collections.Unsafe {
       *heap = default;
 
       // free heap
-      AllocHelper.Free(heap);
+      Native.Free(heap);
     }
 
     public static int Capacity(UnsafeHeapMax* heap)
@@ -271,23 +271,23 @@ namespace Collections.Unsafe {
       capacity += 1;
       
       // get alignment for key/val
-      var keyAlignment = AllocHelper.GetAlignmentForArrayElement(keyStride);
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var keyAlignment = Native.GetAlignment(keyStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // pick the max one as our alignment
       var alignment = Math.Max(keyAlignment, valAlignment);
 
       // align sizes to their respective alignments
-      keyStride = AllocHelper.RoundUpToAlignment(keyStride, alignment);
-      valStride = AllocHelper.RoundUpToAlignment(valStride, alignment);
+      keyStride = Native.RoundToAlignment(keyStride, alignment);
+      valStride = Native.RoundToAlignment(valStride, alignment);
 
       UnsafeHeapMin* heap;
 
       if (fixedSize) {
-        var sizeOfHeader = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHeapMin), alignment);
+        var sizeOfHeader = Native.RoundToAlignment(sizeof(UnsafeHeapMin), alignment);
         var sizeOfBuffer = (keyStride + valStride) * capacity;
 
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
 
         // heap pointer
         heap = (UnsafeHeapMin*)ptr;
@@ -295,7 +295,7 @@ namespace Collections.Unsafe {
         // initialize our fixed buffer
         UnsafeBuffer.InitFixed(&heap->_items, (byte*)ptr + sizeOfHeader, capacity, keyStride + valStride);
       } else {
-        heap = AllocHelper.MallocAndClear<UnsafeHeapMin>();
+        heap = Native.MallocAndClear<UnsafeHeapMin>();
 
         // dynamic buffer (separate memory)
         UnsafeBuffer.InitDynamic(&heap->_items, capacity, keyStride + valStride);
@@ -320,7 +320,7 @@ namespace Collections.Unsafe {
       *heap = default;
 
       // free heap
-      AllocHelper.Free(heap);
+      Native.Free(heap);
     }
 
     public static int Capacity(UnsafeHeapMin* heap)

@@ -61,28 +61,28 @@ namespace Collections.Unsafe {
       // this has to be true
       Assert.Check(entryStride == 16);
 
-      var keyAlignment = AllocHelper.GetAlignmentForArrayElement(keyStride);
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var keyAlignment = Native.GetAlignment(keyStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // the alignment for entry/key/val, we can't have less than ENTRY_ALIGNMENT
       // bytes alignment because entries are 8 bytes with 2 x 32 bit integers
       var alignment = Math.Max(UnsafeHashCollection.Entry.ALIGNMENT, Math.Max(keyAlignment, valAlignment));
 
       // calculate strides for all elements
-      keyStride   = AllocHelper.RoundUpToAlignment(keyStride,                          alignment);
-      valStride   = AllocHelper.RoundUpToAlignment(valStride,                          alignment);
-      entryStride = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashCollection.Entry), alignment);
+      keyStride   = Native.RoundToAlignment(keyStride,                          alignment);
+      valStride   = Native.RoundToAlignment(valStride,                          alignment);
+      entryStride = Native.RoundToAlignment(sizeof(UnsafeHashCollection.Entry), alignment);
 
       // map ptr
       UnsafeHashMap* map;
 
       if (fixedSize) {
-        var sizeOfHeader        = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashMap),                           alignment);
-        var sizeOfBucketsBuffer = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashCollection.Entry**) * capacity, alignment);
+        var sizeOfHeader        = Native.RoundToAlignment(sizeof(UnsafeHashMap),                           alignment);
+        var sizeOfBucketsBuffer = Native.RoundToAlignment(sizeof(UnsafeHashCollection.Entry**) * capacity, alignment);
         var sizeofEntriesBuffer = (entryStride + keyStride + valStride) * capacity;
 
         // allocate memory
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBucketsBuffer + sizeofEntriesBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBucketsBuffer + sizeofEntriesBuffer, alignment);
 
         // start of memory is the dict itself
         map = (UnsafeHashMap*)ptr;
@@ -95,8 +95,8 @@ namespace Collections.Unsafe {
       }
       else {
         // allocate dict, buckets and entries buffer separately
-        map                      = AllocHelper.MallocAndClear<UnsafeHashMap>();
-        map->_collection.Buckets = (UnsafeHashCollection.Entry**)AllocHelper.MallocAndClear(sizeof(UnsafeHashCollection.Entry**) * capacity, sizeof(UnsafeHashCollection.Entry**));
+        map                      = Native.MallocAndClear<UnsafeHashMap>();
+        map->_collection.Buckets = (UnsafeHashCollection.Entry**)Native.MallocAndClear(sizeof(UnsafeHashCollection.Entry**) * capacity, sizeof(UnsafeHashCollection.Entry**));
 
         // init dynamic buffer
         UnsafeBuffer.InitDynamic(&map->_collection.Entries, capacity, entryStride + keyStride + valStride);
@@ -119,7 +119,7 @@ namespace Collections.Unsafe {
         UnsafeHashCollection.Free(&set->_collection);
       }
       
-      AllocHelper.Free(set);
+      Native.Free(set);
     }
 
     public static Iterator<K, V> GetIterator<K, V>(UnsafeHashMap* map)

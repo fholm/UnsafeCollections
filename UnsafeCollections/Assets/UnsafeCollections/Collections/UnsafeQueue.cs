@@ -47,11 +47,11 @@ namespace Collections.Unsafe {
 
       // fixedSize queue means we are allocating the memory for the header and the items in it as one block
       if (fixedSize) {
-        var alignment   = AllocHelper.GetAlignmentForArrayElement(stride);
-        var sizeOfQueue = AllocHelper.RoundUpToAlignment(sizeof(UnsafeQueue), alignment);
+        var alignment   = Native.GetAlignment(stride);
+        var sizeOfQueue = Native.RoundToAlignment(sizeof(UnsafeQueue), alignment);
         var sizeOfArray = stride * capacity;
 
-        var ptr = AllocHelper.MallocAndClear(sizeOfQueue + sizeOfArray, alignment);
+        var ptr = Native.MallocAndClear(sizeOfQueue + sizeOfArray, alignment);
 
         // cast ptr to queue
         queue = (UnsafeQueue*)ptr;
@@ -63,7 +63,7 @@ namespace Collections.Unsafe {
       // dynamic sized queue means we're allocating the stack header and its memory separately
       else {
         // allocate memory for queue
-        queue = AllocHelper.MallocAndClear<UnsafeQueue>();
+        queue = Native.MallocAndClear<UnsafeQueue>();
 
         // initialize dynamic buffer with separate memory
         UnsafeBuffer.InitDynamic(&queue->_items, capacity, stride);
@@ -90,7 +90,7 @@ namespace Collections.Unsafe {
       *queue = default;
 
       // free queue memory, if this is a fixed queue it frees the items memory at the same time
-      AllocHelper.Free(queue);
+      Native.Free(queue);
     }
 
     public static int Capacity(UnsafeQueue* queue) {

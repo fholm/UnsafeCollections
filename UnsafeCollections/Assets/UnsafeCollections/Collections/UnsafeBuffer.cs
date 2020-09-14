@@ -46,7 +46,7 @@ namespace Collections.Unsafe {
       Assert.Check(buffer->Ptr != null);
 
       // free memory of ptr
-      AllocHelper.Free(buffer->Ptr);
+      Native.Free(buffer->Ptr);
 
       // clear buffer itself
       *buffer = default;
@@ -54,7 +54,7 @@ namespace Collections.Unsafe {
 
     public static void Clear(UnsafeBuffer* buffer)
     {
-      AllocHelper.MemClear(buffer->Ptr, buffer->Length * buffer->Stride);
+      Native.MemClear(buffer->Ptr, buffer->Length * buffer->Stride);
     }
 
     public static void InitFixed(UnsafeBuffer* buffer, void* ptr, int length, int stride) {
@@ -65,7 +65,7 @@ namespace Collections.Unsafe {
       Assert.Check(stride > 0);
 
       // ensure alignment of fixed buffer
-      Assert.Check((((IntPtr)ptr).ToInt64() % AllocHelper.GetAlignmentForArrayElement(stride)) == 0);
+      Assert.Check((((IntPtr)ptr).ToInt64() % Native.GetAlignment(stride)) == 0);
 
       buffer->Ptr     = ptr;
       buffer->Length  = length;
@@ -82,7 +82,7 @@ namespace Collections.Unsafe {
       Assert.Check(length > 0);
       Assert.Check(stride > 0);
 
-      buffer->Ptr     = AllocHelper.MallocAndClear(length * stride, AllocHelper.GetAlignmentForArrayElement(stride));
+      buffer->Ptr     = Native.MallocAndClear(length * stride, Native.GetAlignment(stride));
       buffer->Length  = length;
       buffer->Stride  = stride;
       buffer->Dynamic = true;
@@ -94,12 +94,12 @@ namespace Collections.Unsafe {
       Assert.Check(source.Stride == destination.Stride);
       Assert.Check(source.Stride > 0);
       Assert.Check(destination.Ptr != null);
-      AllocHelper.MemCpy((byte*)destination.Ptr + (destinationIndex * source.Stride), (byte*)source.Ptr + (sourceIndex * source.Stride), count * source.Stride);
+      Native.MemCpy((byte*)destination.Ptr + (destinationIndex * source.Stride), (byte*)source.Ptr + (sourceIndex * source.Stride), count * source.Stride);
     }
 
     public static void Move(UnsafeBuffer source, int fromIndex, int toIndex, int count) {
       Assert.Check(source.Ptr != null);
-      AllocHelper.MemMove((byte*)source.Ptr + (toIndex * source.Stride), (byte*)source.Ptr + (fromIndex * source.Stride), count * source.Stride);
+      Native.MemMove((byte*)source.Ptr + (toIndex * source.Stride), (byte*)source.Ptr + (fromIndex * source.Stride), count * source.Stride);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -44,14 +44,14 @@ namespace Collections.Unsafe {
       Assert.Check(stride > 0);
 
       // fixedSize means we are allocating the memory for the collection header and the items in it as one block
-      var alignment = AllocHelper.GetAlignmentForArrayElement(stride);
+      var alignment = Native.GetAlignment(stride);
 
       // align header size to the elements alignment
-      var sizeOfHeader = AllocHelper.RoundUpToAlignment(sizeof(UnsafeRingBuffer), alignment);
+      var sizeOfHeader = Native.RoundToAlignment(sizeof(UnsafeRingBuffer), alignment);
       var sizeOfBuffer = stride * capacity;
 
       // allocate memory for list and array with the correct alignment
-      var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
+      var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, alignment);
 
       // grab header ptr
       var ring = (UnsafeRingBuffer*)ptr;
@@ -72,7 +72,7 @@ namespace Collections.Unsafe {
       *ring = default;
 
       // release ring memory
-      AllocHelper.Free(ring);
+      Native.Free(ring);
     }
 
     public static int Capacity(UnsafeRingBuffer* ring) {

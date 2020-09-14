@@ -48,12 +48,12 @@ namespace Collections.Unsafe {
       }
 
       // round to WORD_BIT_SIZE alignment, as we operate on the bitset using WORD_SIZE
-      size = AllocHelper.RoundUpToAlignment(size, WORD_SIZE_BITS);
+      size = Native.RoundToAlignment(size, WORD_SIZE_BITS);
 
-      var sizeOfHeader = AllocHelper.RoundUpToAlignment(sizeof(UnsafeBitSet), WORD_SIZE);
+      var sizeOfHeader = Native.RoundToAlignment(sizeof(UnsafeBitSet), WORD_SIZE);
       var sizeOfBuffer = size / 8; // 8 bits per byte
 
-      var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBuffer);
+      var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer);
       var set = (UnsafeBitSet*)ptr;
 
       // set bit capacity
@@ -69,7 +69,7 @@ namespace Collections.Unsafe {
       *set = default;
 
       // free memory
-      AllocHelper.Free(set);
+      Native.Free(set);
     }
 
     public static int Size(UnsafeBitSet* set) {
@@ -77,7 +77,7 @@ namespace Collections.Unsafe {
     }
 
     public static void Clear(UnsafeBitSet* set) {
-      AllocHelper.MemClear(set->_bits, set->_sizeBuckets * WORD_SIZE);
+      Native.MemClear(set->_bits, set->_sizeBuckets * WORD_SIZE);
     }
 
     public static void Set(UnsafeBitSet* set, int bit) {

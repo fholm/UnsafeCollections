@@ -21,6 +21,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+#define UNSAFE_COLLECTIONS_TESTING
 
 #if UNSAFE_COLLECTIONS_TESTING
 using System;
@@ -35,17 +36,17 @@ namespace Collections.Unsafe {
 
     internal static UnsafeOrderedCollection* Allocate(int capacity, int valStride) {
       var entryStride  = sizeof(Entry);
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // alignment we need is max of the two alignments
       var alignment = Math.Max(Entry.ALIGNMENT, valAlignment);
 
       // calculate strides for all elements
-      valStride   = AllocHelper.RoundUpToAlignment(valStride,   alignment);
-      entryStride = AllocHelper.RoundUpToAlignment(entryStride, alignment);
+      valStride   = Native.RoundToAlignment(valStride,   alignment);
+      entryStride = Native.RoundToAlignment(entryStride, alignment);
 
       // allocate dict, buckets and entries buffer separately
-      var collection = AllocHelper.MallocAndClear<UnsafeOrderedCollection>();
+      var collection = Native.MallocAndClear<UnsafeOrderedCollection>();
 
       // init dynamic buffer
       UnsafeBuffer.InitDynamic(&collection->Entries, capacity, entryStride + valStride);
@@ -62,7 +63,7 @@ namespace Collections.Unsafe {
       UnsafeBuffer.Free(&collection->Entries);
 
       // free collection header itself
-      AllocHelper.Free(collection);
+      Native.Free(collection);
     }
 
     public static string PrintTree<T>(UnsafeOrderedCollection* collection, Func<T, string> print) where T : unmanaged {

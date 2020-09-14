@@ -1,8 +1,6 @@
 {
-    "name": "UnsafeCollections",
-    "references": [
-        "GUID:64be9ad19c2c34da1af307ca3615ab12"
-    ],
+    "name": "UnsafeUtils",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,

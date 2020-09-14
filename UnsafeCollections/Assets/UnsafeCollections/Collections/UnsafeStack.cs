@@ -45,14 +45,14 @@ namespace Collections.Unsafe {
       // fixedSize stack means we are allocating the memory
       // for the stack header and the items in it as one block
       if (fixedSize) {
-        var alignment = AllocHelper.GetAlignmentForArrayElement(stride);
+        var alignment = Native.GetAlignment(stride);
 
         // align stack header size to the elements alignment
-        var sizeOfStack = AllocHelper.RoundUpToAlignment(sizeof(UnsafeStack), alignment);
+        var sizeOfStack = Native.RoundToAlignment(sizeof(UnsafeStack), alignment);
         var sizeOfArray = stride * capacity;
 
         // allocate memory for stack and array with the correct alignment
-        var ptr = AllocHelper.MallocAndClear(sizeOfStack + sizeOfArray, alignment);
+        var ptr = Native.MallocAndClear(sizeOfStack + sizeOfArray, alignment);
 
         // grab stack ptr
         stack = (UnsafeStack*)ptr;
@@ -65,7 +65,7 @@ namespace Collections.Unsafe {
       // and its memory separately
       else {
         // allocate stack separately
-        stack = AllocHelper.MallocAndClear<UnsafeStack>();
+        stack = Native.MallocAndClear<UnsafeStack>();
 
         // initialize dynamic buffer with separate memory
         UnsafeBuffer.InitDynamic(&stack->_items, capacity, stride);
@@ -89,7 +89,7 @@ namespace Collections.Unsafe {
       *stack = default;
 
       // free stack memory (if this is a fixed size stack, it frees the _items memory also)
-      AllocHelper.Free(stack);
+      Native.Free(stack);
     }
 
     public static int Capacity(UnsafeStack* stack) {

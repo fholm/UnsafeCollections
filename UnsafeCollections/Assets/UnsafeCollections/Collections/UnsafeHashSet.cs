@@ -42,26 +42,26 @@ namespace Collections.Unsafe {
       // this has to be true
       Assert.Check(entryStride == 16);
 
-      var valAlignment = AllocHelper.GetAlignmentForArrayElement(valStride);
+      var valAlignment = Native.GetAlignment(valStride);
 
       // the alignment for entry/key/val, we can't have less than ENTRY_ALIGNMENT
       // bytes alignment because entries are 16 bytes with 1 x pointer + 2 x 4 byte integers
       var alignment = Math.Max(UnsafeHashCollection.Entry.ALIGNMENT, valAlignment);
 
       // calculate strides for all elements
-      valStride   = AllocHelper.RoundUpToAlignment(valStride,                          alignment);
-      entryStride = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashCollection.Entry), alignment);
+      valStride   = Native.RoundToAlignment(valStride,                          alignment);
+      entryStride = Native.RoundToAlignment(sizeof(UnsafeHashCollection.Entry), alignment);
 
       // dictionary ptr
       UnsafeHashSet* set;
 
       if (fixedSize) {
-        var sizeOfHeader        = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashSet),                           alignment);
-        var sizeOfBucketsBuffer = AllocHelper.RoundUpToAlignment(sizeof(UnsafeHashCollection.Entry**) * capacity, alignment);
+        var sizeOfHeader        = Native.RoundToAlignment(sizeof(UnsafeHashSet),                           alignment);
+        var sizeOfBucketsBuffer = Native.RoundToAlignment(sizeof(UnsafeHashCollection.Entry**) * capacity, alignment);
         var sizeofEntriesBuffer = (entryStride + valStride) * capacity;
 
         // allocate memory
-        var ptr = AllocHelper.MallocAndClear(sizeOfHeader + sizeOfBucketsBuffer + sizeofEntriesBuffer, alignment);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBucketsBuffer + sizeofEntriesBuffer, alignment);
 
         // start of memory is the dict itself
         set = (UnsafeHashSet*)ptr;
@@ -74,8 +74,8 @@ namespace Collections.Unsafe {
       }
       else {
         // allocate dict, buckets and entries buffer separately
-        set                      = AllocHelper.MallocAndClear<UnsafeHashSet>();
-        set->_collection.Buckets = (UnsafeHashCollection.Entry**)AllocHelper.MallocAndClear(sizeof(UnsafeHashCollection.Entry**) * capacity, sizeof(UnsafeHashCollection.Entry**));
+        set                      = Native.MallocAndClear<UnsafeHashSet>();
+        set->_collection.Buckets = (UnsafeHashCollection.Entry**)Native.MallocAndClear(sizeof(UnsafeHashCollection.Entry**) * capacity, sizeof(UnsafeHashCollection.Entry**));
 
         // init dynamic buffer
         UnsafeBuffer.InitDynamic(&set->_collection.Entries, capacity, entryStride + valStride);
@@ -95,7 +95,7 @@ namespace Collections.Unsafe {
         UnsafeHashCollection.Free(&set->_collection);
       }
       
-      AllocHelper.Free(set);
+      Native.Free(set);
     }
 
     public static int Capacity(UnsafeHashSet* set) {
