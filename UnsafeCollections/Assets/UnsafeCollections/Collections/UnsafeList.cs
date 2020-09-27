@@ -52,7 +52,7 @@ namespace Collections.Unsafe {
         var sizeOfBuffer = stride * capacity;
 
         // allocate memory for list and array with the correct alignment
-        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer, Native.MAX_ALIGNMENT);
+        var ptr = Native.MallocAndClear(sizeOfHeader + sizeOfBuffer);
 
         // grab header ptr
         list = (UnsafeList*)ptr;

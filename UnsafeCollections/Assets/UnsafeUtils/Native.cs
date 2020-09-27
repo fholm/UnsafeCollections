@@ -84,26 +84,6 @@ public static unsafe class Native {
     MemClear(ptr, sizeof(T) * size);
   }
 
-  public static T* Double<T>(T* array, int currentLength) where T : unmanaged {
-    return Expand(array, currentLength, currentLength * 2);
-  }
-
-  public static T* Expand<T>(T* array, int currentLength, int newLength) where T : unmanaged {
-    Assert.Check(newLength > currentLength);
-
-    var oldArray = array;
-    var newArray = MallocAndClearArray<T>(newLength);
-
-    // copy old contents
-    MemCpy(newArray, oldArray, sizeof(T) * currentLength);
-
-    // free old buffer
-    Free(oldArray);
-
-    // return the new size
-    return newArray;
-  }
-
   public static void* Expand(void* buffer, int currentSize, int newSize) {
     Assert.Check(newSize > currentSize);
 
