@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.28307.1300
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnsafeCollections", "UnsafeCollections\UnsafeCollections.csproj", "{FA56C721-6BFD-4C16-BC65-4D9981A9D98E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UnsafeCollections", "UnsafeCollections\UnsafeCollections.csproj", "{FA56C721-6BFD-4C16-BC65-4D9981A9D98E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnsafeCollectionsTests", "UnsafeCollectionsTests\UnsafeCollectionsTests.csproj", "{14A281B0-E4B8-420B-ABE2-F03217A89ED0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,6 +17,10 @@ Global
 		{FA56C721-6BFD-4C16-BC65-4D9981A9D98E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FA56C721-6BFD-4C16-BC65-4D9981A9D98E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FA56C721-6BFD-4C16-BC65-4D9981A9D98E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{14A281B0-E4B8-420B-ABE2-F03217A89ED0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{14A281B0-E4B8-420B-ABE2-F03217A89ED0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{14A281B0-E4B8-420B-ABE2-F03217A89ED0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{14A281B0-E4B8-420B-ABE2-F03217A89ED0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
