@@ -71,6 +71,11 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeArray* array)
         {
+            if (array == null)
+                return;
+
+            *array = default;
+
             Memory.Free(array);
         }
 
@@ -85,7 +90,7 @@ namespace UnsafeCollections.Collections
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static int Length(UnsafeArray* array)
+        public static int GetLength(UnsafeArray* array)
         {
             UDebug.Assert(array != null);
             return array->_length;
@@ -179,7 +184,7 @@ namespace UnsafeCollections.Collections
             UDebug.Assert(array != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == array->_typeHandle);
 
-            for (int i = 0; i < Length(array); ++i)
+            for (int i = 0; i < GetLength(array); ++i)
             {
                 if (Get<T>(array, i).Equals(item))
                 {
@@ -195,7 +200,7 @@ namespace UnsafeCollections.Collections
             UDebug.Assert(array != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == array->_typeHandle);
 
-            for (int i = Length(array) - 1; i >= 0; --i)
+            for (int i = GetLength(array) - 1; i >= 0; --i)
             {
                 if (Get<T>(array, i).Equals(item))
                 {
@@ -211,7 +216,7 @@ namespace UnsafeCollections.Collections
             UDebug.Assert(array != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == array->_typeHandle);
 
-            for (int i = 0; i < Length(array); ++i)
+            for (int i = 0; i < GetLength(array); ++i)
             {
                 if (predicate(Get<T>(array, i)))
                 {
@@ -227,7 +232,7 @@ namespace UnsafeCollections.Collections
             UDebug.Assert(array != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == array->_typeHandle);
 
-            for (int i = Length(array) - 1; i >= 0; --i)
+            for (int i = GetLength(array) - 1; i >= 0; --i)
             {
                 if (predicate(Get<T>(array, i)))
                 {

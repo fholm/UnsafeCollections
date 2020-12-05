@@ -87,6 +87,9 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeOrderedSet* set)
         {
+            if (set == null)
+                return;
+
             if (set->_collection.Entries.Dynamic == 1)
             {
                 UnsafeBuffer.Free(&set->_collection.Entries);
@@ -104,9 +107,9 @@ namespace UnsafeCollections.Collections
             return new OrderedSetIterator<T>(set);
         }
 
-        public static int Count(UnsafeOrderedSet* set)
+        public static int GetCount(UnsafeOrderedSet* set)
         {
-            return UnsafeOrderedCollection.Count(&set->_collection);
+            return UnsafeOrderedCollection.GetCount(&set->_collection);
         }
 
         public static void Add<T>(UnsafeOrderedSet* set, T item)

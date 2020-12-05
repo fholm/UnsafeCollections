@@ -35,12 +35,12 @@ namespace UnsafeCollections.Collections
         UnsafeHashCollection _collection;
         int _valueOffset;
 
-        public static int Capacity(UnsafeHashMap* map)
+        public static int GetCapacity(UnsafeHashMap* map)
         {
             return map->_collection.Entries.Length;
         }
 
-        public static int Count(UnsafeHashMap* map)
+        public static int GetCount(UnsafeHashMap* map)
         {
             return map->_collection.UsedCount - map->_collection.FreeCount;
         }
@@ -122,10 +122,15 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeHashMap* set)
         {
+            if (set == null)
+                return;
+
             if (set->_collection.Entries.Dynamic == 1)
             {
                 UnsafeHashCollection.Free(&set->_collection);
             }
+
+            *set = default;
 
             Memory.Free(set);
         }

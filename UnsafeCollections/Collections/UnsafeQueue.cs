@@ -86,9 +86,7 @@ namespace UnsafeCollections.Collections
         public static void Free(UnsafeQueue* queue)
         {
             if (queue == null)
-            {
                 return;
-            }
 
             // not fixed, we need to free items separtely 
             if (queue->_items.Dynamic == 1)
@@ -103,14 +101,14 @@ namespace UnsafeCollections.Collections
             Memory.Free(queue);
         }
 
-        public static int Capacity(UnsafeQueue* queue)
+        public static int GetCapacity(UnsafeQueue* queue)
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             return queue->_items.Length;
         }
 
-        public static int Count(UnsafeQueue* queue)
+        public static int GetCount(UnsafeQueue* queue)
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);

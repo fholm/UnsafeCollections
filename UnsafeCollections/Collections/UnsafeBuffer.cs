@@ -44,12 +44,11 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeBuffer* buffer)
         {
-            UDebug.Assert(buffer != null);
+            if (buffer == null)
+                return;
 
             if (buffer->Dynamic == 0)
-            {
                 throw new InvalidOperationException("Can't free a fixed buffer");
-            }
 
             // buffer ptr can't be null
             UDebug.Assert(buffer->Ptr != null);

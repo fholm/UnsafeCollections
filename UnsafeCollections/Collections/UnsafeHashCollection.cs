@@ -145,10 +145,15 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeHashCollection* collection)
         {
+            if (collection == null)
+                return;
+
             UDebug.Assert(collection->Entries.Dynamic == 1);
 
             Memory.Free(collection->Buckets);
             Memory.Free(collection->Entries.Ptr);
+
+            *collection = default;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

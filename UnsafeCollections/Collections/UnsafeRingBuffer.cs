@@ -71,7 +71,8 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeRingBuffer* ring)
         {
-            UDebug.Assert(ring != null);
+            if (ring == null)
+                return;
 
             // clear memory just in case
             *ring = default;
@@ -80,14 +81,14 @@ namespace UnsafeCollections.Collections
             Memory.Free(ring);
         }
 
-        public static int Capacity(UnsafeRingBuffer* ring)
+        public static int GetCapacity(UnsafeRingBuffer* ring)
         {
             UDebug.Assert(ring != null);
             UDebug.Assert(ring->_items.Ptr != null);
             return ring->_items.Length;
         }
 
-        public static int Count(UnsafeRingBuffer* ring)
+        public static int GetCount(UnsafeRingBuffer* ring)
         {
             UDebug.Assert(ring != null);
             UDebug.Assert(ring->_items.Ptr != null);

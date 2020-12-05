@@ -51,12 +51,12 @@ namespace UnsafeCollections.Collections
         public int KeyOffset;
         public UnsafeBuffer Entries;
 
-        public static int Height(UnsafeOrderedCollection* collection)
+        public static int GetHeight(UnsafeOrderedCollection* collection)
         {
             return Height(collection, collection->Root);
         }
 
-        public static int Count(UnsafeOrderedCollection* collection)
+        public static int GetCount(UnsafeOrderedCollection* collection)
         {
             return collection->UsedCount - collection->FreeCount;
         }

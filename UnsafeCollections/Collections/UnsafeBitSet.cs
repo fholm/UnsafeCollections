@@ -52,7 +52,7 @@ namespace UnsafeCollections.Collections
         int _sizeBits;
         int _sizeBuckets;
 
-        public static UnsafeBitSet* Alloc(int size)
+        public static UnsafeBitSet* Allocate(int size)
         {
             if (size < 1)
             {
@@ -60,7 +60,7 @@ namespace UnsafeCollections.Collections
             }
 
             // round to WORD_BIT_SIZE alignment, as we operate on the bitset using WORD_SIZE
-            size = Memory.RoundToAlignment(size, WORD_SIZE_BITS);
+            size = Memory.RoundToAlignment(size, Memory.GetAlignment(WORD_SIZE_BITS));
 
             var sizeOfHeader = Memory.RoundToAlignment(sizeof(UnsafeBitSet), WORD_SIZE);
             var sizeOfBuffer = size / 8; // 8 bits per byte
@@ -78,6 +78,9 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeBitSet* set)
         {
+            if (set == null)
+                return;
+
             // clear memory
             *set = default;
 
@@ -85,7 +88,7 @@ namespace UnsafeCollections.Collections
             Memory.Free(set);
         }
 
-        public static int Size(UnsafeBitSet* set)
+        public static int GetSize(UnsafeBitSet* set)
         {
             return set->_sizeBits;
         }
@@ -186,7 +189,7 @@ namespace UnsafeCollections.Collections
         {
             UDebug.Assert(UnsafeArray.GetTypeHandle(array) == typeof(int).TypeHandle.Value);
 
-            if (UnsafeArray.Length(array) < set->_sizeBits)
+            if (UnsafeArray.GetLength(array) < set->_sizeBits)
             {
                 throw new InvalidOperationException(SET_ARRAY_LESS_CAPACITY);
             }

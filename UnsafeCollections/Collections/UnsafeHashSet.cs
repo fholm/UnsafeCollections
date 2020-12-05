@@ -99,20 +99,25 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeHashSet* set)
         {
+            if (set == null)
+                return;
+
             if (set->_collection.Entries.Dynamic == 1)
             {
                 UnsafeHashCollection.Free(&set->_collection);
             }
 
+            *set = default;
+
             Memory.Free(set);
         }
 
-        public static int Capacity(UnsafeHashSet* set)
+        public static int GetCapacity(UnsafeHashSet* set)
         {
             return set->_collection.Entries.Length;
         }
 
-        public static int Count(UnsafeHashSet* set)
+        public static int GetCount(UnsafeHashSet* set)
         {
             return set->_collection.UsedCount - set->_collection.FreeCount;
         }

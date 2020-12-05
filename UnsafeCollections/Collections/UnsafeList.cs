@@ -81,10 +81,15 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeList* list)
         {
+            if (list == null)
+                return;
+
+            *list = default;
+
             Memory.Free(list);
         }
 
-        public static int Count(UnsafeList* list)
+        public static int GetCount(UnsafeList* list)
         {
             UDebug.Assert(list != null);
             return list->_count;
@@ -96,7 +101,7 @@ namespace UnsafeCollections.Collections
             list->_count = 0;
         }
 
-        public static int Capacity(UnsafeList* list)
+        public static int GetCapacity(UnsafeList* list)
         {
             UDebug.Assert(list != null);
             return list->_items.Length;

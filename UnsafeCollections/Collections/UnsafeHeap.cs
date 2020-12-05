@@ -90,9 +90,7 @@ namespace UnsafeCollections.Collections
         public static void Free(UnsafeHeapMax* heap)
         {
             if (heap == null)
-            {
                 return;
-            }
 
             // free dynamic items separately
             if (heap->_items.Dynamic == 1)
@@ -107,12 +105,12 @@ namespace UnsafeCollections.Collections
             Memory.Free(heap);
         }
 
-        public static int Capacity(UnsafeHeapMax* heap)
+        public static int GetCapacity(UnsafeHeapMax* heap)
         {
             return heap->_items.Length - 1;
         }
 
-        public static int Count(UnsafeHeapMax* heap)
+        public static int GetCount(UnsafeHeapMax* heap)
         {
             return heap->_count - 1;
         }

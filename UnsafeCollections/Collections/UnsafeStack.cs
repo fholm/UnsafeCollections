@@ -85,7 +85,8 @@ namespace UnsafeCollections.Collections
 
         public static void Free(UnsafeStack* stack)
         {
-            UDebug.Assert(stack != null);
+            if (stack == null)
+                return;
 
             // if this is a dynamic sized stack, we need to free the buffer by hand
             if (stack->_items.Dynamic == 1)
@@ -100,14 +101,14 @@ namespace UnsafeCollections.Collections
             Memory.Free(stack);
         }
 
-        public static int Capacity(UnsafeStack* stack)
+        public static int GetCapacity(UnsafeStack* stack)
         {
             UDebug.Assert(stack != null);
             UDebug.Assert(stack->_items.Ptr != null);
             return stack->_items.Length;
         }
 
-        public static int Count(UnsafeStack* stack)
+        public static int GetCount(UnsafeStack* stack)
         {
             UDebug.Assert(stack != null);
             UDebug.Assert(stack->_items.Ptr != null);
