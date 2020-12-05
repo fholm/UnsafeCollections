@@ -32,7 +32,6 @@ namespace UnsafeCollections.Collections
         const string STACK_FULL = "Fixed size stack is full";
 
         UnsafeBuffer _items;
-        IntPtr _typeKey;
         int _count;
 
         public static UnsafeStack* Allocate<T>(int capacity, bool fixedSize = false) where T : unmanaged

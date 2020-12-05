@@ -171,7 +171,7 @@ namespace UnsafeCollections.Collections
                 return false;
             }
 
-            Enqueue<T>(queue, item);
+            Enqueue(queue, item);
             return true;
         }
 
@@ -246,6 +246,11 @@ namespace UnsafeCollections.Collections
 
             var items = queue->_items;
             return (T*)UnsafeBuffer.Element(items.Ptr, queue->_head, items.Stride);
+        }
+
+        public static ref T PeekRef<T>(UnsafeQueue* queue) where T : unmanaged
+        {
+            return ref *PeekPtr<T>(queue);
         }
 
         // expand algorithm from first answer here: https://codereview.stackexchange.com/questions/129819/queue-resizing-array-implementation

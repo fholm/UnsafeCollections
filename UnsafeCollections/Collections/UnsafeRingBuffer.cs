@@ -125,13 +125,7 @@ namespace UnsafeCollections.Collections
 
         public static T Get<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged
         {
-            // cast to uint trick, which eliminates < 0 check
-            if ((uint)index >= (uint)ring->_count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
-            return *(T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
+            return *GetPtr<T>(ring, index);
         }
 
         public static T* GetPtr<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged
@@ -144,6 +138,12 @@ namespace UnsafeCollections.Collections
 
             return (T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
         }
+
+        public static ref T GetRef<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged
+        {
+            return ref *GetPtr<T>(ring, index);
+        }
+
 
         public static bool Push<T>(UnsafeRingBuffer* ring, T item) where T : unmanaged
         {

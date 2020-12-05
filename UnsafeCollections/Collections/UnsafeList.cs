@@ -222,16 +222,7 @@ namespace UnsafeCollections.Collections
 
         public static T Get<T>(UnsafeList* list, int index) where T : unmanaged
         {
-            UDebug.Assert(list != null);
-
-            // cast to uint trick, which eliminates < 0 check
-            if ((uint)index >= (uint)list->_count)
-            {
-                throw new IndexOutOfRangeException();
-            }
-
-            var items = list->_items;
-            return *(T*)UnsafeBuffer.Element(items.Ptr, index, items.Stride);
+            return *GetPtr<T>(list, index);
         }
 
         public static T* GetPtr<T>(UnsafeList* list, int index) where T : unmanaged
@@ -246,6 +237,11 @@ namespace UnsafeCollections.Collections
 
             var items = list->_items;
             return (T*)UnsafeBuffer.Element(items.Ptr, index, items.Stride);
+        }
+
+        public static ref T GetRef<T>(UnsafeList* list, int index) where T : unmanaged
+        {
+            return ref *GetPtr<T>(list, index);
         }
 
         public static void RemoveAt(UnsafeList* list, int index)

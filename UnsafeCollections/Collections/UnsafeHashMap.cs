@@ -202,26 +202,27 @@ namespace UnsafeCollections.Collections
           where K : unmanaged, IEquatable<K>
           where V : unmanaged
         {
-            var entry = UnsafeHashCollection.Find<K>(&map->_collection, key, key.GetHashCode());
-            if (entry == null)
-            {
-                throw new KeyNotFoundException(key.ToString());
-            }
-
-            return *(V*)GetValue(map, entry);
+            return *GetPtr<K, V>(map, key);
         }
 
         public static V* GetPtr<K, V>(UnsafeHashMap* map, K key)
-          where K : unmanaged, IEquatable<K>
-          where V : unmanaged
+            where K : unmanaged, IEquatable<K>
+            where V : unmanaged
         {
-            var entry = UnsafeHashCollection.Find<K>(&map->_collection, key, key.GetHashCode());
+            var entry = UnsafeHashCollection.Find(&map->_collection, key, key.GetHashCode());
             if (entry == null)
             {
                 throw new KeyNotFoundException(key.ToString());
             }
 
             return (V*)GetValue(map, entry);
+        }
+
+        public static ref V GetRef<K, V>(UnsafeHashMap* map, K key)
+            where K : unmanaged, IEquatable<K>
+            where V : unmanaged
+        {
+            return ref *GetPtr<K, V>(map, key);
         }
 
         public static bool TryGetValue<K, V>(UnsafeHashMap* map, K key, out V val)

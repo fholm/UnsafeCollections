@@ -141,7 +141,7 @@ namespace UnsafeCollections.Collections
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Set<T>(UnsafeArray* array, int index, T value) where T : unmanaged
         {
-            Set<T>(array, (long)index, value);
+            Set(array, (long)index, value);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -157,30 +157,6 @@ namespace UnsafeCollections.Collections
             }
 
             *((T*)array->_buffer + index) = value;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set<T>(UnsafeArray* array, int index, ref T value) where T : unmanaged
-        {
-            Set(array, (long)index, value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set<T>(UnsafeArray* array, long index, ref T value) where T : unmanaged
-        {
-            Set(array, (long)index, value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set<T>(UnsafeArray* array, int index, T* value) where T : unmanaged
-        {
-            Set(array, index, *value);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Set<T>(UnsafeArray* array, long index, T* value) where T : unmanaged
-        {
-            Set(array, index, *value);
         }
 
 
