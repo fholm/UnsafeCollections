@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Text;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct ListIterator<T> : IUnsafeIterator<T> where T : unmanaged
     {

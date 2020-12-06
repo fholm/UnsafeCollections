@@ -25,7 +25,7 @@ THE SOFTWARE.
 using System;
 using System.Runtime.InteropServices;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     internal unsafe struct UnsafeOrderedCollection
     {

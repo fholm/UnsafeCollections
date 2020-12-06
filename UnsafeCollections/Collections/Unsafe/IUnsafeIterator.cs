@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 using System.Collections.Generic;
 
-namespace UnsafeCollections.Collections {
+namespace UnsafeCollections.Collections.Unsafe {
   public interface IUnsafeIterator<T> : IEnumerator<T>, IEnumerable<T> where T : struct {
 
   }

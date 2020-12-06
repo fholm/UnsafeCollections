@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-#if !UNITY
+#if UNITY
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
@@ -99,7 +99,7 @@ namespace UnsafeCollections.Unsafe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void MemMove(void* destination, void* source, int size)
         {
-#if !UNITY
+#if UNITY
             UnsafeUtility.MemMove(destination, source, size);
 #else
             Buffer.MemoryCopy(source, destination, size, size);

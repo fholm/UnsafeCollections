@@ -27,7 +27,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     internal unsafe struct UnsafeHashCollection
     {
@@ -48,7 +48,7 @@ namespace UnsafeCollections.Collections
             public EntryState State;
         }
 
-        public struct Iterator
+        internal struct Iterator
         {
             int _index;
 

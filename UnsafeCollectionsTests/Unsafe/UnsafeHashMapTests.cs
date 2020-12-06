@@ -1,7 +1,7 @@
 ﻿using NUnit.Framework;
-using UnsafeCollections.Collections;
+using UnsafeCollections.Collections.Unsafe;
 
-namespace UnsafeCollectionsTests
+namespace UnsafeCollectionsTests.Unsafe
 {
     public unsafe class UnsafeHashMapTests
     {

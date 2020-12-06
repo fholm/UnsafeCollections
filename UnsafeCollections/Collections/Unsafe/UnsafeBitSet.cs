@@ -31,7 +31,7 @@ using UnsafeCollections.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeBitSet
     {

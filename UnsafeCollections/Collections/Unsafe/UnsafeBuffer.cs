@@ -29,7 +29,7 @@ using UnsafeCollections.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     internal unsafe struct UnsafeBuffer
     {
@@ -124,6 +124,18 @@ namespace UnsafeCollections.Collections
         public static void* Element(void* bufferPtr, int index, int stride)
         {
             return (byte*)bufferPtr + (index * stride);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void* Element(int index)
+        {
+            return (byte*)Ptr + (index * Stride);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public T* Element<T>(int index) where T : unmanaged
+        {
+            return (T*)((byte*)Ptr + (index * Stride));
         }
     }
 }

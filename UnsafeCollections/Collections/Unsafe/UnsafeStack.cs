@@ -25,7 +25,7 @@ THE SOFTWARE.
 using System;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeStack
     {

@@ -1,10 +1,7 @@
 ﻿using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using UnsafeCollections.Collections;
+using UnsafeCollections.Collections.Unsafe;
 
-namespace UnsafeCollectionsTests
+namespace UnsafeCollectionsTests.Unsafe
 {
     public unsafe class UnsafeHeapTests
     {

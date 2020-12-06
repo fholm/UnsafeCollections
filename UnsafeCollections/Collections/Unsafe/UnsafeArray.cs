@@ -31,7 +31,7 @@ using UnsafeCollections.Unsafe;
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeArray
     {
@@ -176,6 +176,9 @@ namespace UnsafeCollections.Collections
             UDebug.Assert(destination != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == source->_typeHandle);
             UDebug.Assert(typeof(T).TypeHandle.Value == destination->_typeHandle);
+            UDebug.Assert(GetLength(source) >= sourceIndex + count);
+            UDebug.Assert(GetLength(destination) >= destinationIndex + count);
+
             Memory.MemCpy((T*)destination->_buffer + destinationIndex, (T*)source->_buffer + sourceIndex, count * sizeof(T));
         }
 

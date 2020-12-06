@@ -25,9 +25,9 @@ THE SOFTWARE.
 using System;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
-    public unsafe partial struct UnsafeQueue
+    public unsafe struct UnsafeQueue
     {
         const string QUEUE_EMPTY = "Queue is empty";
         const string QUEUE_FIXED_SIZE_FULL = "Fixed size queue full";

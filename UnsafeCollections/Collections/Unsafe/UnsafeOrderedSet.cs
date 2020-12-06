@@ -27,7 +27,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeOrderedSet
     {

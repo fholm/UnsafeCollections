@@ -23,9 +23,10 @@ THE SOFTWARE.
 */
 
 using System;
+using Unity.Collections;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeList
     {

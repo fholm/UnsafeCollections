@@ -26,7 +26,7 @@ using System;
 using UnsafeCollections;
 using UnsafeCollections.Unsafe;
 
-namespace UnsafeCollections.Collections
+namespace UnsafeCollections.Collections.Unsafe
 {
     public unsafe struct UnsafeRingBuffer
     {
