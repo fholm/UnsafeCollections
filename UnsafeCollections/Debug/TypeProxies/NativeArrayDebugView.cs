@@ -2,12 +2,15 @@
 
 namespace UnsafeCollections.Debug.TypeProxies
 {
-    internal sealed class NativeArrayDebugView<T> where T : unmanaged
+    internal struct NativeArrayDebugView<T> where T : unmanaged
     {
         private readonly NativeArray<T> m_array;
 
         public NativeArrayDebugView(NativeArray<T> array)
         {
+            if (!array.IsCreated)
+                throw new System.ArgumentException(nameof(array));
+
             m_array = array;
         }
 
@@ -15,9 +18,6 @@ namespace UnsafeCollections.Debug.TypeProxies
         {
             get
             {
-                if (!m_array.IsCreated)
-                    throw new System.NullReferenceException();
-
                 return m_array.ToArray();
             }
         }

@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using UnsafeCollections.Collections.Unsafe;
+using UnsafeCollections.Debug.TypeProxies;
+using UnsafeCollections.Unsafe;
 #if UNITY
 using Unity.Collections.LowLevel.Unsafe;
 #endif
@@ -10,7 +12,7 @@ using Unity.Collections.LowLevel.Unsafe;
 namespace UnsafeCollections.Collections.Native
 {
     [DebuggerDisplay("Length = {Length}")]
-    [DebuggerTypeProxy(typeof(Debug.TypeProxies.NativeArrayDebugView<>))]
+    [DebuggerTypeProxy(typeof(NativeArrayDebugView<>))]
     public unsafe struct NativeArray<T> : IDisposable, IEnumerable<T>, IEnumerable where T : unmanaged
     {
         private UnsafeArray* m_inner;
@@ -27,10 +29,20 @@ namespace UnsafeCollections.Collections.Native
             get
             {
                 if (m_inner == null)
-                    throw new InvalidOperationException();
+                    throw new NullReferenceException();
                 return UnsafeArray.GetLength(m_inner);
             }
         }
+        public UnsafeArray.ArrayIterator<T> NativeIterator
+        {
+            get
+            {
+                if (m_inner == null)
+                    throw new NullReferenceException();
+                return UnsafeArray.GetIterator<T>(m_inner);
+            }
+        }
+
 
         public NativeArray(int length)
         {
@@ -41,8 +53,7 @@ namespace UnsafeCollections.Collections.Native
         {
             m_inner = UnsafeArray.Allocate<T>(array.Length);
 
-            for (int i = 0; i < array.Length; i++)
-                UnsafeArray.Set<T>(m_inner, i, array[i]);
+            Copy(array, this, array.Length);
         }
 
         public NativeArray(NativeArray<T> array)
@@ -65,6 +76,11 @@ namespace UnsafeCollections.Collections.Native
             }
         }
 
+
+        public ref T GetRef(int index)
+        {
+            return ref UnsafeArray.GetRef<T>(m_inner, index);
+        }
 
         public static void Copy(NativeArray<T> src, NativeArray<T> dst)
         {
@@ -94,8 +110,8 @@ namespace UnsafeCollections.Collections.Native
             UDebug.Assert(dst != null);
             UDebug.Assert(dst.Length >= dstIndex + length);
 
-            for (int i = 0; i < length; i++)
-                dst[i] = src[i];
+            fixed (void* ptr = dst)
+                Memory.ArrayCopy<T>(UnsafeArray.GetBuffer(src.m_inner), 0, ptr, 0, length);
         }
 
         public static void Copy(T[] src, NativeArray<T> dst)
@@ -113,8 +129,8 @@ namespace UnsafeCollections.Collections.Native
             UDebug.Assert(dst.IsCreated);
             UDebug.Assert(dst.Length >= dstIndex + length);
 
-            for (int i = 0; i < length; i++)
-                dst[i] = src[i];
+            fixed (void* ptr = src)
+                Memory.ArrayCopy<T>(ptr, 0, UnsafeArray.GetBuffer(dst.m_inner), 0, length);
         }
 
 #if UNITY
@@ -140,12 +156,20 @@ namespace UnsafeCollections.Collections.Native
             Copy(this, array);
         }
 
+        public int FindIndex(Func<T, bool> predicate)
+        {
+            return UnsafeArray.FindIndex<T>(m_inner, predicate);
+        }
+        public int FindLastIndex(Func<T, bool> predicate)
+        {
+            return UnsafeArray.FindLastIndex<T>(m_inner, predicate);
+        }
 
         public T[] ToArray()
         {
             var arr = new T[Length];
 
-            Copy(this, 0, arr, 0, arr.Length);
+            Copy(this, arr, arr.Length);
 
             return arr;
         }

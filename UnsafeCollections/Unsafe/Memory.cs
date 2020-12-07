@@ -106,11 +106,13 @@ namespace UnsafeCollections.Unsafe
 #endif
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ArrayCopy<T>(void* source, int sourceIndex, void* destination, int destinationIndex, int count) where T : unmanaged
         {
             ArrayCopy(source, sourceIndex, destination, destinationIndex, count, sizeof(T));
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void ArrayCopy(void* source, int sourceIndex, void* destination, int destinationIndex, int count, int elementStride)
         {
             MemCpy(((byte*)destination) + (destinationIndex * elementStride), ((byte*)source) + (sourceIndex * elementStride), count * elementStride);
