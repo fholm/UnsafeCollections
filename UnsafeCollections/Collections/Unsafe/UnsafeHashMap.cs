@@ -136,11 +136,11 @@ namespace UnsafeCollections.Collections.Unsafe
             Memory.Free(set);
         }
 
-        public static HashMapIterator<K, V> GetIterator<K, V>(UnsafeHashMap* map)
+        public static Enumerator<K, V> GetEnumerator<K, V>(UnsafeHashMap* map)
           where K : unmanaged
           where V : unmanaged
         {
-            return new HashMapIterator<K, V>(map);
+            return new Enumerator<K, V>(map);
         }
 
         public static bool ContainsKey<K>(UnsafeHashMap* map, K key) where K : unmanaged, IEquatable<K>
@@ -272,51 +272,46 @@ namespace UnsafeCollections.Collections.Unsafe
             return (byte*)entry + map->_valueOffset;
         }
 
-        public unsafe struct HashMapIterator<K, V> : IUnsafeIterator<(K key, V value)>
+        public unsafe struct Enumerator<K, V> : IUnsafeEnumerator<KeyValuePair<K, V>>
             where K : unmanaged
             where V : unmanaged
         {
 
-            UnsafeHashCollection.Iterator _iterator;
+            UnsafeHashCollection.Enumarator _iterator;
             readonly int _keyOffset;
             readonly int _valueOffset;
 
-            public HashMapIterator(UnsafeHashMap* map)
+            public Enumerator(UnsafeHashMap* map)
             {
                 _valueOffset = map->_valueOffset;
                 _keyOffset = map->_collection.KeyOffset;
-                _iterator = new UnsafeHashCollection.Iterator(&map->_collection);
+                _iterator = new UnsafeHashCollection.Enumarator(&map->_collection);
             }
 
             public K CurrentKey
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if (_iterator.Current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
+                    UDebug.Assert(_iterator.Current != null);
                     return *(K*)((byte*)_iterator.Current + _keyOffset);
                 }
             }
 
             public V CurrentValue
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if (_iterator.Current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
+                    UDebug.Assert(_iterator.Current != null);
                     return *(V*)((byte*)_iterator.Current + _valueOffset);
                 }
             }
 
-            public (K key, V value) Current
+            public KeyValuePair<K, V> Current
             {
-                get { return (CurrentKey, CurrentValue); }
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get { return new KeyValuePair<K, V>(CurrentKey, CurrentValue); }
             }
 
             object IEnumerator.Current
@@ -326,7 +321,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
             public bool MoveNext()
             {
-                return _iterator.Next();
+                return _iterator.MoveNext();
             }
 
             public void Reset()
@@ -335,17 +330,19 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             public void Dispose()
-            {
-            }
+            { }
 
-            public IEnumerator<(K key, V value)> GetEnumerator()
+            public Enumerator<K, V> GetEnumerator()
             {
                 return this;
             }
-
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                return this;
+            }
+            IEnumerator<KeyValuePair<K, V>> IEnumerable<KeyValuePair<K, V>>.GetEnumerator()
+            {
+                return this;
             }
         }
     }

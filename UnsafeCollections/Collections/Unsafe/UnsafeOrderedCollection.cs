@@ -732,7 +732,7 @@ namespace UnsafeCollections.Collections.Unsafe
         }
 
 
-        public unsafe struct OrderedCollectionIterator
+        public unsafe struct Enumerator
         {
 #pragma warning disable IDE0044
             fixed int _stack[UnsafeOrderedCollection.MAX_DEPTH];
@@ -744,7 +744,7 @@ namespace UnsafeCollections.Collections.Unsafe
             public Entry* Current;
             public UnsafeOrderedCollection* Collection;
 
-            public OrderedCollectionIterator(UnsafeOrderedCollection* collection)
+            public Enumerator(UnsafeOrderedCollection* collection)
             {
                 Collection = collection;
                 Current = null;
@@ -753,7 +753,7 @@ namespace UnsafeCollections.Collections.Unsafe
                 _index = Collection->Root;
             }
 
-            public bool Next()
+            public bool MoveNext()
             {
                 if (Current != null)
                 {

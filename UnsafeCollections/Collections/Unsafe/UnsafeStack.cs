@@ -224,9 +224,9 @@ namespace UnsafeCollections.Collections.Unsafe
             stack->_items = newItems;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeStack* stack) where T : unmanaged
+        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeStack* stack) where T : unmanaged
         {
-            return new ListIterator<T>(stack->_items, 0, stack->_count);
+            return new UnsafeList.Enumerator<T>(stack->_items, 0, stack->_count);
         }
     }
 }

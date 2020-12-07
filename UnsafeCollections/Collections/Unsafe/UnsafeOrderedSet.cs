@@ -26,6 +26,7 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
@@ -103,9 +104,9 @@ namespace UnsafeCollections.Collections.Unsafe
             Memory.Free(set);
         }
 
-        public static OrderedSetIterator<T> GetIterator<T>(UnsafeOrderedSet* set) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeOrderedSet* set) where T : unmanaged
         {
-            return new OrderedSetIterator<T>(set);
+            return new Enumerator<T>(set);
         }
 
         public static int GetCount(UnsafeOrderedSet* set)
@@ -132,26 +133,23 @@ namespace UnsafeCollections.Collections.Unsafe
         }
 
 
-        public unsafe struct OrderedSetIterator<T> : IUnsafeIterator<T> where T : unmanaged
+        public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
         {
             readonly int _keyOffset;
-            UnsafeOrderedCollection.OrderedCollectionIterator _iterator;
+            UnsafeOrderedCollection.Enumerator _iterator;
 
-            public OrderedSetIterator(UnsafeOrderedSet* set)
+            public Enumerator(UnsafeOrderedSet* set)
             {
                 _keyOffset = set->_collection.KeyOffset;
-                _iterator = new UnsafeOrderedCollection.OrderedCollectionIterator(&set->_collection);
+                _iterator = new UnsafeOrderedCollection.Enumerator(&set->_collection);
             }
 
             public T Current
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if (_iterator.Current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
+                    UDebug.Assert(_iterator.Current != null);
                     return *(T*)((byte*)_iterator.Current + _keyOffset);
                 }
             }
@@ -163,7 +161,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
             public bool MoveNext()
             {
-                return _iterator.Next();
+                return _iterator.MoveNext();
             }
 
             public void Reset()
@@ -172,18 +170,19 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             public void Dispose()
-            {
+            { }
 
-            }
-
-            public IEnumerator<T> GetEnumerator()
+            public Enumerator<T> GetEnumerator()
             {
                 return this;
             }
-
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                return this;
             }
         }
     }

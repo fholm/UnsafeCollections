@@ -24,6 +24,9 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
@@ -361,9 +364,83 @@ namespace UnsafeCollections.Collections.Unsafe
             return true;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeList* list) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeList* list) where T : unmanaged
         {
-            return new ListIterator<T>(list->_items, 0, list->_count);
+            return new Enumerator<T>(list->_items, 0, list->_count);
+        }
+
+        public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
+        {
+            T* _current;
+            int _index;
+            readonly int _count;
+            readonly int _offset;
+            UnsafeBuffer _buffer;
+
+            internal Enumerator(UnsafeBuffer buffer, int offset, int count)
+            {
+                _index = 0;
+                _count = count;
+                _offset = offset;
+                _buffer = buffer;
+                _current = null;
+            }
+
+            public void Dispose()
+            { }
+
+            public bool MoveNext()
+            {
+                if ((uint)_index < (uint)_count)
+                {
+                    _current = _buffer.Element<T>((_offset + _index) % _buffer.Length);
+                    _index++;
+                    return true;
+                }
+
+                _current = default;
+                return false;
+            }
+
+            public void Reset()
+            {
+                _index = 0;
+                _current = null;
+            }
+
+            public T Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    UDebug.Assert(_current != null);
+                    return *_current;
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    if (_index == 0 || _index == _count + 1)
+                        throw new InvalidOperationException();
+
+                    return Current;
+                }
+            }
+
+            public Enumerator<T> GetEnumerator()
+            {
+                return this;
+            }
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this;
+            }
         }
     }
 }

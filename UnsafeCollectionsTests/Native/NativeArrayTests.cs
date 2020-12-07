@@ -56,7 +56,7 @@ namespace UnsafeCollectionsTests.Native
                 arr[i] = i;
 
             int c = 0;
-            foreach (int i in arr.NativeIterator)
+            foreach (int i in arr)
                 Assert.AreEqual(c++, i);
 
             arr.Dispose();
@@ -96,12 +96,30 @@ namespace UnsafeCollectionsTests.Native
             arr.Dispose();
         }
 
+        [Test]
         public void ContainsTest()
         {
             NativeArray<int> arr = new NativeArray<int>(10);
 
             for (int i = 0; i < 10; i++)
                 arr[i] = i;
+
+            Assert.IsTrue(arr.Contains(5));
+            Assert.IsFalse(arr.Contains(15));
+
+            arr.Dispose();
+        }
+
+        [Test]
+        public void IndexOfTest()
+        {
+            NativeArray<int> arr = new NativeArray<int>(10);
+
+            for (int i = 0; i < 10; i++)
+                arr[i] = i;
+
+            Assert.AreEqual(3, arr.IndexOf(3));
+            Assert.AreEqual(5, arr.LastIndexOf(5));
 
             arr.Dispose();
         }

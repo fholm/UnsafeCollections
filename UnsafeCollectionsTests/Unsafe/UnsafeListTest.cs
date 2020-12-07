@@ -51,7 +51,7 @@ namespace UnsafeCollectionsTests.Unsafe
         {
             var arr = UnsafeList.Allocate<int>(10);
 
-            var itr = UnsafeList.GetIterator<int>(arr);
+            var itr = UnsafeList.GetEnumerator<int>(arr);
             for (int i = 0; i < 10; i++)
                 UnsafeList.Add(arr, i * i);
 

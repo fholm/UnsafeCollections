@@ -279,9 +279,9 @@ namespace UnsafeCollections.Collections.Unsafe
             heap->_items = newItems;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeHeapMax* heap) where T : unmanaged
+        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeHeapMax* heap) where T : unmanaged
         {
-            return new ListIterator<T>(heap->_items, 1, heap->_count - 1);
+            return new UnsafeList.Enumerator<T>(heap->_items, 1, heap->_count - 1);
         }
     }
 
@@ -537,9 +537,9 @@ namespace UnsafeCollections.Collections.Unsafe
             heap->_items = newItems;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeHeapMin* heap) where T : unmanaged
+        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeHeapMin* heap) where T : unmanaged
         {
-            return new ListIterator<T>(heap->_items, 1, heap->_count - 1);
+            return new UnsafeList.Enumerator<T>(heap->_items, 1, heap->_count - 1);
         }
     }
 }

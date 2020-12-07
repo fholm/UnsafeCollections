@@ -49,7 +49,7 @@ namespace UnsafeCollections.Collections.Unsafe
             public EntryState State;
         }
 
-        internal struct Iterator
+        internal struct Enumarator
         {
             int _index;
 
@@ -57,7 +57,7 @@ namespace UnsafeCollections.Collections.Unsafe
             public Entry* Current;
             public UnsafeHashCollection* Collection;
 
-            public Iterator(UnsafeHashCollection* collection)
+            public Enumarator(UnsafeHashCollection* collection)
             {
                 _index = -1;
 
@@ -66,11 +66,12 @@ namespace UnsafeCollections.Collections.Unsafe
                 Collection = collection;
             }
 
-            public bool Next()
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public bool MoveNext()
             {
                 while (++_index < Collection->UsedCount)
                 {
-                    var entry = UnsafeHashCollection.GetEntry(Collection, _index);
+                    var entry = GetEntry(Collection, _index);
                     if (entry->State == EntryState.Used)
                     {
                         Current = entry;

@@ -194,9 +194,9 @@ namespace UnsafeCollections.Collections.Unsafe
             return true;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeRingBuffer* buffer) where T : unmanaged
+        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeRingBuffer* buffer) where T : unmanaged
         {
-            return new ListIterator<T>(buffer->_items, buffer->_tail, buffer->_count);
+            return new UnsafeList.Enumerator<T>(buffer->_items, buffer->_tail, buffer->_count);
         }
     }
 }

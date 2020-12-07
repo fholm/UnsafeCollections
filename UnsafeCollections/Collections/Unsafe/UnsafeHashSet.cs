@@ -26,6 +26,7 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
@@ -152,9 +153,9 @@ namespace UnsafeCollections.Collections.Unsafe
             return UnsafeHashCollection.Find<T>(&set->_collection, key, key.GetHashCode()) != null;
         }
 
-        public static HashSetIterator<T> GetIterator<T>(UnsafeHashSet* set) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeHashSet* set) where T : unmanaged
         {
-            return new HashSetIterator<T>(set);
+            return new Enumerator<T>(set);
         }
 
         public static void And<T>(UnsafeHashSet* set, UnsafeHashSet* other) where T : unmanaged, IEquatable<T>
@@ -215,20 +216,20 @@ namespace UnsafeCollections.Collections.Unsafe
         }
 
 
-        public unsafe struct HashSetIterator<T> : IUnsafeIterator<T> where T : unmanaged
+        public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
         {
-            UnsafeHashCollection.Iterator _iterator;
+            UnsafeHashCollection.Enumarator _iterator;
             readonly int _keyOffset;
 
-            public HashSetIterator(UnsafeHashSet* set)
+            public Enumerator(UnsafeHashSet* set)
             {
                 _keyOffset = set->_collection.KeyOffset;
-                _iterator = new UnsafeHashCollection.Iterator(&set->_collection);
+                _iterator = new UnsafeHashCollection.Enumarator(&set->_collection);
             }
 
             public bool MoveNext()
             {
-                return _iterator.Next();
+                return _iterator.MoveNext();
             }
 
             public void Reset()
@@ -243,29 +244,28 @@ namespace UnsafeCollections.Collections.Unsafe
 
             public T Current
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if (_iterator.Current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
+                    UDebug.Assert(_iterator.Current != null);
                     return *(T*)((byte*)_iterator.Current + _keyOffset);
                 }
             }
 
             public void Dispose()
-            {
-            }
+            { }
 
-            public IEnumerator<T> GetEnumerator()
+            public Enumerator<T> GetEnumerator()
             {
                 return this;
             }
-
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                return this;
             }
         }
     }

@@ -293,9 +293,9 @@ namespace UnsafeCollections.Collections.Unsafe
             queue->_tail = queue->_count % queue->_items.Length;
         }
 
-        public static ListIterator<T> GetIterator<T>(UnsafeQueue* queue) where T : unmanaged
+        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeQueue* queue) where T : unmanaged
         {
-            return new ListIterator<T>(queue->_items, queue->_head, queue->_count);
+            return new UnsafeList.Enumerator<T>(queue->_items, queue->_head, queue->_count);
         }
     }
 }

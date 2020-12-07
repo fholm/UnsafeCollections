@@ -26,6 +26,7 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnsafeCollections;
 using UnsafeCollections.Unsafe;
 #if UNITY
@@ -181,9 +182,9 @@ namespace UnsafeCollections.Collections.Unsafe
             return false;
         }
 
-        public static BitSetIterator GetIterator(UnsafeBitSet* set)
+        public static Enumerator GetEnumerator(UnsafeBitSet* set)
         {
-            return new BitSetIterator(set);
+            return new Enumerator(set);
         }
 
         public static int GetSetBits(UnsafeBitSet* set, UnsafeArray* array)
@@ -279,12 +280,12 @@ namespace UnsafeCollections.Collections.Unsafe
         }
 
 
-        public unsafe struct BitSetIterator : IUnsafeIterator<(int bit, bool set)>
+        public unsafe struct Enumerator : IUnsafeEnumerator<(int bit, bool set)>
         {
             UnsafeBitSet* _set;
             int _current;
 
-            public BitSetIterator(UnsafeBitSet* set)
+            internal Enumerator(UnsafeBitSet* set)
             {
                 _set = set;
                 _current = -1;
@@ -302,14 +303,12 @@ namespace UnsafeCollections.Collections.Unsafe
 
             public (int bit, bool set) Current
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if ((uint)_current >= (uint)_set->_sizeBits)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
-                    return (_current, IsSet(_set, _current));
+                    UDebug.Assert((uint)_current < (uint)_set->_sizeBits);
+                    bool isSet = (_set->_bits[_current / WORD_SIZE_BITS] & (WORD_ONE << (_current % WORD_SIZE_BITS))) != WORD_ZERO;
+                    return (_current, isSet);
                 }
             }
 
@@ -322,14 +321,17 @@ namespace UnsafeCollections.Collections.Unsafe
             {
             }
 
-            public IEnumerator<(int, bool)> GetEnumerator()
+            public Enumerator GetEnumerator()
             {
                 return this;
             }
-
+            IEnumerator<(int bit, bool set)> IEnumerable<(int bit, bool set)>.GetEnumerator()
+            {
+                return this;
+            }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                return this;
             }
         }
     }

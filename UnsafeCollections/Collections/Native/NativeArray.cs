@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using UnsafeCollections.Collections.Unsafe;
 using UnsafeCollections.Debug.TypeProxies;
 using UnsafeCollections.Unsafe;
@@ -33,15 +34,6 @@ namespace UnsafeCollections.Collections.Native
                 return UnsafeArray.GetLength(m_inner);
             }
         }
-        public UnsafeArray.ArrayIterator<T> NativeIterator
-        {
-            get
-            {
-                if (m_inner == null)
-                    throw new NullReferenceException();
-                return UnsafeArray.GetIterator<T>(m_inner);
-            }
-        }
 
 
         public NativeArray(int length)
@@ -63,23 +55,30 @@ namespace UnsafeCollections.Collections.Native
             Copy(array, this);
         }
 
-
         public T this[int index]
         {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get
             {
                 return UnsafeArray.Get<T>(m_inner, index);
             }
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
             set
             {
                 UnsafeArray.Set<T>(m_inner, index, value);
             }
         }
 
-
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public ref T GetRef(int index)
         {
             return ref UnsafeArray.GetRef<T>(m_inner, index);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal UnsafeArray* GetUnsafeArray()
+        {
+            return m_inner;
         }
 
         public static void Copy(NativeArray<T> src, NativeArray<T> dst)
@@ -165,6 +164,7 @@ namespace UnsafeCollections.Collections.Native
             return UnsafeArray.FindLastIndex<T>(m_inner, predicate);
         }
 
+
         public T[] ToArray()
         {
             var arr = new T[Length];
@@ -174,13 +174,17 @@ namespace UnsafeCollections.Collections.Native
             return arr;
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public UnsafeArray.Enumerator<T> GetEnumerator()
         {
-            return UnsafeArray.GetIterator<T>(m_inner);
+            return UnsafeArray.GetEnumerator<T>(m_inner);
+        }
+        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        {
+            return UnsafeArray.GetEnumerator<T>(m_inner);
         }
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return GetEnumerator();
+            return UnsafeArray.GetEnumerator<T>(m_inner);
         }
 
 #if UNITY
@@ -190,6 +194,27 @@ namespace UnsafeCollections.Collections.Native
         {
             UnsafeArray.Free(m_inner);
             m_inner = null;
+        }
+
+
+    }
+
+    //Extension methods are used to add extra constraints to <T>
+    public unsafe static class NativeArrayExtensions
+    {
+        public static bool Contains<T>(this NativeArray<T> array, T item) where T : unmanaged, IEquatable<T>
+        {
+            return UnsafeArray.IndexOf(array.GetUnsafeArray(), item) > -1;
+        }
+
+        public static int IndexOf<T>(this NativeArray<T> array, T item) where T : unmanaged, IEquatable<T>
+        {
+            return UnsafeArray.IndexOf(array.GetUnsafeArray(), item);
+        }
+
+        public static int LastIndexOf<T>(this NativeArray<T> array, T item) where T : unmanaged, IEquatable<T>
+        {
+            return UnsafeArray.LastIndexOf(array.GetUnsafeArray(), item);
         }
     }
 }

@@ -57,7 +57,7 @@ namespace UnsafeCollectionsTests.Unsafe
 
             unsafe
             {
-                var itr = UnsafeArray.GetIterator<int>(arr);
+                var itr = UnsafeArray.GetEnumerator<int>(arr);
                 for (int i = 0; i < 10; i++)
                     UnsafeArray.Set(arr, i, i * i);
 

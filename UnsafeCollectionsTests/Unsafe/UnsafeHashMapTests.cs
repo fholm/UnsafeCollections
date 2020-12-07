@@ -59,5 +59,19 @@ namespace UnsafeCollectionsTests.Unsafe
 
             UnsafeHashMap.Free(map);
         }
+
+        [Test]
+        public void MapIteratorTest()
+        {
+            var map = Map(0, 10, 20, 30, 40);
+
+            int count = 0;
+            foreach (var keypair in UnsafeHashMap.GetEnumerator<int, int>(map))
+            {
+                Assert.AreEqual(count * 10, keypair.Value);
+                Assert.AreEqual(count, keypair.Key);
+                count++;
+            }
+        }
     }
 }

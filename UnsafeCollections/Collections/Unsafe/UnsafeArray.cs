@@ -97,7 +97,6 @@ namespace UnsafeCollections.Collections.Unsafe
             return array->_length;
         }
 
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T* GetPtr<T>(UnsafeArray* array, int index) where T : unmanaged
         {
@@ -165,10 +164,12 @@ namespace UnsafeCollections.Collections.Unsafe
             *((T*)array->_buffer + index) = value;
         }
 
-
-        public static ArrayIterator<T> GetIterator<T>(UnsafeArray* array) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeArray* array) where T : unmanaged
         {
-            return new ArrayIterator<T>(array);
+            UDebug.Assert(array != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == array->_typeHandle);
+
+            return new Enumerator<T>(array);
         }
 
         public static void Copy<T>(UnsafeArray* source, int sourceIndex, UnsafeArray* destination, int destinationIndex, int count) where T : unmanaged
@@ -248,67 +249,74 @@ namespace UnsafeCollections.Collections.Unsafe
         }
 
 
-        public unsafe struct ArrayIterator<T> : IUnsafeIterator<T> where T : unmanaged
+        public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
         {
             T* _current;
             int _index;
             UnsafeArray* _array;
 
-            internal ArrayIterator(UnsafeArray* array)
+            internal Enumerator(UnsafeArray* array)
             {
-                _index = -1;
+                _index = 0;
                 _array = array;
                 _current = null;
             }
 
             public bool MoveNext()
             {
-                if (++_index < _array->_length)
+                if ((uint)_index < (uint)_array->_length)
                 {
-                    _current = GetPtr<T>(_array, _index);
+                    _current = (T*)_array->_buffer + _index;
+                    _index++;
                     return true;
                 }
 
-                _current = null;
+                _current = default;
                 return false;
             }
 
             public void Reset()
             {
-                _index = -1;
-                _current = null;
+                _index = 0;
+                _current = default;
             }
 
             public T Current
             {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    if (_current == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-
+                    UDebug.Assert(_current != null);
                     return *_current;
                 }
             }
 
             object IEnumerator.Current
             {
-                get { return Current; }
+                get
+                {
+                    if (_index == 0 || _index == _array->_length + 1)
+                        throw new InvalidOperationException();
+
+                    return Current;
+                }
             }
 
             public void Dispose()
             {
             }
 
-            public IEnumerator<T> GetEnumerator()
+            public Enumerator<T> GetEnumerator()
             {
                 return this;
             }
-
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                return GetEnumerator();
+                return this;
             }
         }
     }
