@@ -39,16 +39,13 @@ namespace UnsafeCollections.Collections.Unsafe
 
         UnsafeBuffer _items;
         int _count;
+        IntPtr _typeHandle;
 
         public static UnsafeList* Allocate<T>(int capacity, bool fixedSize = false) where T : unmanaged
         {
-            return Allocate(capacity, sizeof(T), fixedSize);
-        }
-
-        public static UnsafeList* Allocate(int capacity, int stride, bool fixedSize = false)
-        {
             UDebug.Assert(capacity > 0);
-            UDebug.Assert(stride > 0);
+            int stride = sizeof(T);
+
 
             UnsafeList* list;
 
@@ -80,6 +77,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             list->_count = 0;
+            list->_typeHandle = typeof(T).TypeHandle.Value;
             return list;
         }
 
@@ -88,38 +86,51 @@ namespace UnsafeCollections.Collections.Unsafe
             if (list == null)
                 return;
 
+            // free dynamic items separately
+            if (list->_items.Dynamic == 1)
+            {
+                UnsafeBuffer.Free(&list->_items);
+            }
+
+            // clear memory
             *list = default;
 
+            // free list
             Memory.Free(list);
         }
 
         public static int GetCount(UnsafeList* list)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
             return list->_count;
         }
 
         public static void Clear(UnsafeList* list)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
             list->_count = 0;
         }
 
         public static int GetCapacity(UnsafeList* list)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
             return list->_items.Length;
         }
 
         public static bool IsFixedSize(UnsafeList* list)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
             return list->_items.Dynamic == 0;
         }
 
         public static void SetCapacity(UnsafeList* list, int capacity)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
 
             if (list->_items.Dynamic == 0)
             {
@@ -178,6 +189,8 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void Add<T>(UnsafeList* list, T item) where T : unmanaged
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
             var count = list->_count;
             var items = list->_items;
@@ -218,6 +231,8 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void Set<T>(UnsafeList* list, int index, T item) where T : unmanaged
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
             // cast to uint trick, which eliminates < 0 check
             if ((uint)index >= (uint)list->_count)
@@ -237,6 +252,8 @@ namespace UnsafeCollections.Collections.Unsafe
         public static T* GetPtr<T>(UnsafeList* list, int index) where T : unmanaged
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
             // cast to uint trick, which eliminates < 0 check
             if ((uint)index >= (uint)list->_count)
@@ -256,6 +273,7 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void RemoveAt(UnsafeList* list, int index)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
 
             var count = list->_count;
 
@@ -280,6 +298,7 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void RemoveAtUnordered(UnsafeList* list, int index)
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
 
             var count = list->_count;
 
@@ -298,47 +317,34 @@ namespace UnsafeCollections.Collections.Unsafe
             }
         }
 
+        public static bool Contains<T>(UnsafeList* list, T item) where T : unmanaged, IEquatable<T>
+        {
+            return IndexOf(list, item) > -1;
+        }
+
         public static int IndexOf<T>(UnsafeList* list, T item) where T : unmanaged, IEquatable<T>
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
-            var count = list->_count;
-            var items = list->_items;
-
-            for (int i = 0; i < count; ++i)
-            {
-                var cmp = *items.Element<T>(i);
-                if (cmp.Equals(item))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return UnsafeBuffer.IndexOf(list->_items, item, 0, list->_count);
         }
 
         public static int LastIndexOf<T>(UnsafeList* list, T item) where T : unmanaged, IEquatable<T>
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
-            var count = list->_count;
-            var items = list->_items;
-
-            for (int i = count - 1; i >= 0; --i)
-            {
-                var cmp = *items.Element<T>(i);
-                if (cmp.Equals(item))
-                {
-                    return i;
-                }
-            }
-
-            return -1;
+            return UnsafeBuffer.LastIndexOf(list->_items, item, 0, list->_count);
         }
 
         public static bool Remove<T>(UnsafeList* list, T item) where T : unmanaged, IEquatable<T>
         {
             UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
 
             int index = IndexOf<T>(list, item);
             if (index < 0)
@@ -352,9 +358,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
         public static bool RemoveUnordered<T>(UnsafeList* list, T item) where T : unmanaged, IEquatable<T>
         {
-            UDebug.Assert(list != null);
-
-            int index = IndexOf<T>(list, item);
+            int index = IndexOf(list, item);
             if (index < 0)
             {
                 return false;
@@ -366,6 +370,10 @@ namespace UnsafeCollections.Collections.Unsafe
 
         public static Enumerator<T> GetEnumerator<T>(UnsafeList* list) where T : unmanaged
         {
+            UDebug.Assert(list != null);
+            UDebug.Assert(list->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == list->_typeHandle);
+
             return new Enumerator<T>(list->_items, 0, list->_count);
         }
 
@@ -383,7 +391,7 @@ namespace UnsafeCollections.Collections.Unsafe
                 _count = count;
                 _offset = offset;
                 _buffer = buffer;
-                _current = null;
+                _current = default;
             }
 
             public void Dispose()
@@ -405,7 +413,7 @@ namespace UnsafeCollections.Collections.Unsafe
             public void Reset()
             {
                 _index = 0;
-                _current = null;
+                _current = default;
             }
 
             public T Current
