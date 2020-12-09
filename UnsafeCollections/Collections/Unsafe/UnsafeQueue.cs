@@ -24,6 +24,9 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
@@ -123,12 +126,28 @@ namespace UnsafeCollections.Collections.Unsafe
 
             queue->_head = 0;
             queue->_tail = 0;
+            queue->_count = 0;
         }
 
         public static bool IsFixedSize(UnsafeQueue* queue)
         {
             UDebug.Assert(queue != null);
             return queue->_items.Dynamic == 0;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        static void MoveNext(int length, ref int index)
+        {
+            //Taken from the .NET Core implementation:
+            // It is tempting to use the remainder operator here but it is actually much slower
+            // than a simple comparison and a rarely taken branch.
+            // JIT produces better code than with ternary operator ?:
+            int tmp = index + 1;
+            if (tmp == length)
+            {
+                tmp = 0;
+            }
+            index = tmp;
         }
 
         public static void Enqueue<T>(UnsafeQueue* queue, T item) where T : unmanaged
@@ -159,7 +178,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
             // increment count and head index
             queue->_count = (count + 1);
-            queue->_tail = (tail + 1) % items.Length;
+            MoveNext(items.Length, ref queue->_tail);
         }
 
         public static bool TryEnqueue<T>(UnsafeQueue* queue, T item) where T : unmanaged
@@ -190,9 +209,9 @@ namespace UnsafeCollections.Collections.Unsafe
             // grab result
             T result = *items.Element<T>(head);
 
-            // decrement count and tail index
-            queue->_count = (count - 1);
-            queue->_head = (head + 1) % items.Length;
+            // decrement count and head index
+            queue->_count--;
+            MoveNext(items.Length, ref queue->_head);
             return result;
         }
 
@@ -207,8 +226,15 @@ namespace UnsafeCollections.Collections.Unsafe
                 return false;
             }
 
+            var head = queue->_head;
+            var items = queue->_items;
+
             // grab result
-            result = Dequeue<T>(queue);
+            result = *items.Element<T>(head);
+
+            // decrement count and head index
+            queue->_count--;
+            MoveNext(items.Length, ref queue->_head);
             return true;
         }
 
@@ -223,7 +249,8 @@ namespace UnsafeCollections.Collections.Unsafe
                 return false;
             }
 
-            result = *PeekPtr<T>(queue);
+            //Don't call Peek as this would perform the same check twice!
+            result = *queue->_items.Element<T>(queue->_head);
             return true;
         }
 
@@ -242,8 +269,7 @@ namespace UnsafeCollections.Collections.Unsafe
                 throw new InvalidOperationException(QUEUE_EMPTY);
             }
 
-            var items = queue->_items;
-            return items.Element<T>(queue->_head);
+            return queue->_items.Element<T>(queue->_head);
         }
 
         public static ref T PeekRef<T>(UnsafeQueue* queue) where T : unmanaged
@@ -251,7 +277,54 @@ namespace UnsafeCollections.Collections.Unsafe
             return ref *PeekPtr<T>(queue);
         }
 
-        // expand algorithm from first answer here: https://codereview.stackexchange.com/questions/129819/queue-resizing-array-implementation
+        public static bool Contains<T>(UnsafeQueue* queue, T item) where T : unmanaged, IEquatable<T>
+        {
+            UDebug.Assert(queue != null);
+            UDebug.Assert(queue->_items.Ptr != null);
+
+            int count = queue->_count;
+            int head = queue->_head;
+            int tail = queue->_tail;
+
+            if (count == 0)
+            {
+                return false;
+            }
+
+            if (head < tail)
+            {
+                return UnsafeBuffer.IndexOf(queue->_items, item, head, count) > -1;
+            }
+
+            return UnsafeBuffer.IndexOf(queue->_items, item, head, queue->_items.Length - head) > -1 ||
+                   UnsafeBuffer.IndexOf(queue->_items, item, 0, tail) > -1;
+        }
+
+        public static void CopyTo<T>(UnsafeQueue* queue, void* destination, int destinationIndex) where T : unmanaged
+        {
+            UDebug.Assert(queue != null);
+            UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(destination != null);
+
+
+            int numToCopy = queue->_count;
+            if (numToCopy == 0)
+            {
+                return;
+            }
+
+            int bufferLength = queue->_items.Length;
+            int head = queue->_head;
+
+            int firstPart = Math.Min(bufferLength - head, numToCopy);
+            UnsafeBuffer.CopyTo<T>(queue->_items, head, destination, destinationIndex, firstPart);
+            numToCopy -= firstPart;
+            if (numToCopy > 0)
+            {
+                UnsafeBuffer.CopyTo<T>(queue->_items, 0, destination, destinationIndex + bufferLength - head, numToCopy);
+            }
+        }
+
         static void Expand(UnsafeQueue* queue, int capacity)
         {
             UDebug.Assert(capacity > 0);
@@ -292,9 +365,97 @@ namespace UnsafeCollections.Collections.Unsafe
             queue->_tail = queue->_count % queue->_items.Length;
         }
 
-        public static UnsafeList.Enumerator<T> GetEnumerator<T>(UnsafeQueue* queue) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeQueue* queue) where T : unmanaged
         {
-            return new UnsafeList.Enumerator<T>(queue->_items, queue->_head, queue->_count);
+            UDebug.Assert(queue != null);
+            UDebug.Assert(queue->_items.Ptr != null);
+            return new Enumerator<T>(queue);
+        }
+
+        public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
+        {
+            readonly UnsafeQueue* _queue;
+            int _index;
+            T* _current;
+
+            internal Enumerator(UnsafeQueue* queue)
+            {
+                _queue = queue;
+                _index = -1;
+                _current = default;
+            }
+
+            public void Dispose()
+            {
+                _index = -2;
+                _current = default;
+            }
+
+            public bool MoveNext()
+            {
+                if (_index == -2)
+                    return false;
+
+                _index++;
+
+                if (_index == _queue->_count)
+                {
+                    _index = -2;
+                    _current = default;
+                    return false;
+                }
+
+                int capacity = _queue->_items.Length;
+                int arrayIndex = _queue->_head + _index;
+
+                if (arrayIndex >= capacity)
+                {
+                    arrayIndex -= capacity; // wrap around if needed
+                }
+
+                _current = _queue->_items.Element<T>(arrayIndex);
+                return true;
+            }
+
+            public void Reset()
+            {
+                _index = -1;
+                _current = default;
+            }
+
+            public T Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    UDebug.Assert(_current != null);
+                    return *_current;
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    if (_index < 0)
+                        throw new InvalidOperationException();
+
+                    return Current;
+                }
+            }
+
+            public Enumerator<T> GetEnumerator()
+            {
+                return this;
+            }
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return this;
+            }
         }
     }
 }

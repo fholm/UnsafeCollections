@@ -43,29 +43,6 @@ namespace UnsafeCollections.Collections.Unsafe
         internal int Stride;
         internal int Dynamic;
 
-        public static void Free(UnsafeBuffer* buffer)
-        {
-            if (buffer == null)
-                return;
-
-            if (buffer->Dynamic == 0)
-                throw new InvalidOperationException("Can't free a fixed buffer");
-
-            // buffer ptr can't be null
-            UDebug.Assert(buffer->Ptr != null);
-
-            // free memory of ptr
-            Memory.Free(buffer->Ptr);
-
-            // clear buffer itself
-            *buffer = default;
-        }
-
-        public static void Clear(UnsafeBuffer* buffer)
-        {
-            Memory.ZeroMem(buffer->Ptr, buffer->Length * buffer->Stride);
-        }
-
         public static void InitFixed<T>(UnsafeBuffer* buffer, void* ptr, int length) where T : unmanaged
         {
             InitFixed(buffer, ptr, length, sizeof(T));
@@ -105,6 +82,29 @@ namespace UnsafeCollections.Collections.Unsafe
             buffer->Dynamic = 1;
         }
 
+        public static void Free(UnsafeBuffer* buffer)
+        {
+            if (buffer == null)
+                return;
+
+            if (buffer->Dynamic == 0)
+                throw new InvalidOperationException("Can't free a fixed buffer");
+
+            // buffer ptr can't be null
+            UDebug.Assert(buffer->Ptr != null);
+
+            // free memory of ptr
+            Memory.Free(buffer->Ptr);
+
+            // clear buffer itself
+            *buffer = default;
+        }
+
+        public static void Clear(UnsafeBuffer* buffer)
+        {
+            Memory.ZeroMem(buffer->Ptr, buffer->Length * buffer->Stride);
+        }
+
         public static void Copy(UnsafeBuffer source, int sourceIndex, UnsafeBuffer destination, int destinationIndex, int count)
         {
             UDebug.Assert(source.Ptr != null);
@@ -112,8 +112,80 @@ namespace UnsafeCollections.Collections.Unsafe
             UDebug.Assert(source.Stride == destination.Stride);
             UDebug.Assert(source.Stride > 0);
             UDebug.Assert(destination.Ptr != null);
+            UDebug.Assert(source.Length >= sourceIndex + count);
+            UDebug.Assert(destination.Length >= destinationIndex + count);
+
             Memory.MemCpy((byte*)destination.Ptr + (destinationIndex * source.Stride), (byte*)source.Ptr + (sourceIndex * source.Stride), count * source.Stride);
         }
+
+        public static void CopyTo<T>(UnsafeBuffer source, int sourceIndex, void* destination, int destinationIndex, int count) where T : unmanaged
+        {
+            UDebug.Assert(source.Ptr != null);
+            UDebug.Assert(source.Ptr != destination);
+            UDebug.Assert(source.Stride > 0);
+            UDebug.Assert(destination != null);
+            UDebug.Assert(source.Length >= sourceIndex + count);
+
+            Memory.MemCpy((T*)destination + destinationIndex, (T*)source.Ptr + sourceIndex, count * sizeof(T));
+        }
+
+        public static void CopyFrom<T>(void* source, int sourceIndex, UnsafeBuffer destination, int destinationIndex, int count) where T : unmanaged
+        {
+            UDebug.Assert(source != null);
+            UDebug.Assert(source != destination.Ptr);
+            UDebug.Assert(destination.Ptr != null);
+            UDebug.Assert(destination.Stride > 0);
+            UDebug.Assert(destination.Length >= destinationIndex + count);
+
+            Memory.MemCpy((T*)destination.Ptr + destinationIndex, (T*)source + sourceIndex, count * sizeof(T));
+        }
+
+
+        public static int IndexOf<T>(UnsafeBuffer source, T item, int startIndex, int count) where T : unmanaged, IEquatable<T>
+        {
+            UDebug.Assert(source.Ptr != null);
+            if (source.Length == 0)
+                return -1;
+
+            UDebug.Assert(startIndex > -1);
+            UDebug.Assert(count > -1);
+            UDebug.Assert(source.Length >= startIndex + count);
+            UDebug.Assert(source.Stride == sizeof(T));
+
+            int endIndex = startIndex + count;
+            for (int i = startIndex; i < endIndex; ++i)
+            {
+                var cmp = *source.Element<T>(i);
+                if (cmp.Equals(item))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        public static int LastIndexOf<T>(UnsafeBuffer source, T item, int startIndex, int count) where T : unmanaged, IEquatable<T>
+        {
+            UDebug.Assert(startIndex > -1);
+            UDebug.Assert(count > 0);
+            UDebug.Assert(source.Length >= startIndex + count);
+            UDebug.Assert(source.Stride == sizeof(T));
+
+            int endIndex = startIndex - count + 1;
+
+            for (int i = startIndex; i >= endIndex; i--)
+            {
+                var cmp = *source.Element<T>(i);
+                if (cmp.Equals(item))
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
 
         public static void Move(UnsafeBuffer source, int fromIndex, int toIndex, int count)
         {
