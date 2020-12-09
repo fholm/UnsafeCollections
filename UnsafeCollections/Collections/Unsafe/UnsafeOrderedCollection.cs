@@ -116,8 +116,7 @@ namespace UnsafeCollections.Collections.Unsafe
             {
                 return null;
             }
-
-            return (Entry*)UnsafeBuffer.Element(collection->Entries.Ptr, index - 1, collection->Entries.Stride);
+            return collection->Entries.Element<Entry>(index - 1);
         }
 
         public static T GetKey<T>(UnsafeOrderedCollection* collection, int index) where T : unmanaged

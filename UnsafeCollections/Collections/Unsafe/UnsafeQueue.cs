@@ -155,8 +155,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             var tail = queue->_tail;
-
-            *(T*)UnsafeBuffer.Element(items.Ptr, tail, items.Stride) = item;
+            *items.Element<T>(tail) = item;
 
             // increment count and head index
             queue->_count = (count + 1);
@@ -189,7 +188,7 @@ namespace UnsafeCollections.Collections.Unsafe
             var items = queue->_items;
 
             // grab result
-            T result = *(T*)UnsafeBuffer.Element(items.Ptr, head, items.Stride);
+            T result = *items.Element<T>(head);
 
             // decrement count and tail index
             queue->_count = (count - 1);
@@ -244,7 +243,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             var items = queue->_items;
-            return (T*)UnsafeBuffer.Element(items.Ptr, queue->_head, items.Stride);
+            return items.Element<T>(queue->_head);
         }
 
         public static ref T PeekRef<T>(UnsafeQueue* queue) where T : unmanaged

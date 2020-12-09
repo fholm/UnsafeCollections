@@ -130,12 +130,14 @@ namespace UnsafeCollections.Collections.Unsafe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void* Element(int index)
         {
+            UDebug.Assert(index <= Length);
             return (byte*)Ptr + (index * Stride);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public T* Element<T>(int index) where T : unmanaged
         {
+            UDebug.Assert(index <= Length);
             return (T*)((byte*)Ptr + (index * Stride));
         }
     }

@@ -121,7 +121,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             // assign element
-            *(T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride) = value;
+            *ring->_items.Element<T>((ring->_tail + index) % ring->_items.Length) = value;
         }
 
         public static T Get<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged
@@ -136,8 +136,7 @@ namespace UnsafeCollections.Collections.Unsafe
             {
                 throw new IndexOutOfRangeException();
             }
-
-            return (T*)UnsafeBuffer.Element(ring->_items.Ptr, (ring->_tail + index) % ring->_items.Length, ring->_items.Stride);
+            return ring->_items.Element<T>((ring->_tail + index) % ring->_items.Length);
         }
 
         public static ref T GetRef<T>(UnsafeRingBuffer* ring, int index) where T : unmanaged
@@ -162,7 +161,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             // store value at head
-            *(T*)UnsafeBuffer.Element(ring->_items.Ptr, ring->_head, ring->_items.Stride) = item;
+            *ring->_items.Element<T>(ring->_head) = item;
 
             // move head pointer forward
             ring->_head = (ring->_head + 1) % ring->_items.Length;
@@ -186,7 +185,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             // copy item from tail
-            value = *(T*)UnsafeBuffer.Element(ring->_items.Ptr, ring->_tail, ring->_items.Stride);
+            value = *ring->_items.Element<T>(ring->_tail);
 
             // move tail forward and decrement count
             ring->_tail = (ring->_tail + 1) % ring->_items.Length;

@@ -154,7 +154,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             // write element
-            *(T*)UnsafeBuffer.Element(items.Ptr, count, items.Stride) = item;
+            *items.Element<T>(count) = item;
 
             // increment size
             stack->_count = count + 1;
@@ -203,7 +203,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             var items = stack->_items;
-            return UnsafeBuffer.Element(items.Ptr, count - 1, items.Stride);
+            return items.Element(count - 1);
         }
 
         static void Expand(UnsafeStack* stack)

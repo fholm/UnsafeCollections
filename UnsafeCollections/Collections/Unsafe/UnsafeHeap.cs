@@ -146,7 +146,7 @@ namespace UnsafeCollections.Collections.Unsafe
             while (bubbleIndex != 1)
             {
                 var parentIndex = bubbleIndex / 2;
-                var parentIndexKey = *(K*)UnsafeBuffer.Element(heap->_items.Ptr, parentIndex, heap->_items.Stride);
+                var parentIndexKey = *heap->_items.Element<K>(parentIndex);
                 if (parentIndexKey.CompareTo(key) < 0)
                 {
                     GetKeyVal(heap, parentIndex, out K parentKey, out V parentVal);
@@ -228,7 +228,7 @@ namespace UnsafeCollections.Collections.Unsafe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static K Key<K>(UnsafeHeapMax* heap, int index) where K : unmanaged
         {
-            return *(K*)UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            return *heap->_items.Element<K>(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -236,7 +236,7 @@ namespace UnsafeCollections.Collections.Unsafe
           where K : unmanaged
           where V : unmanaged
         {
-            var ptr = UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            var ptr = heap->_items.Element(index);
 
             // read key
             key = *(K*)(ptr);
@@ -250,7 +250,7 @@ namespace UnsafeCollections.Collections.Unsafe
           where K : unmanaged
           where V : unmanaged
         {
-            var ptr = UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            var ptr = heap->_items.Element(index);
 
             // write key
             *(K*)(ptr) = key;
@@ -404,7 +404,7 @@ namespace UnsafeCollections.Collections.Unsafe
             while (bubbleIndex != 1)
             {
                 var parentIndex = bubbleIndex / 2;
-                var parentIndexKey = *(K*)UnsafeBuffer.Element(heap->_items.Ptr, parentIndex, heap->_items.Stride);
+                var parentIndexKey = *heap->_items.Element<K>(parentIndex);
                 if (parentIndexKey.CompareTo(key) > 0)
                 {
                     GetKeyVal(heap, parentIndex, out K parentKey, out V parentVal);
@@ -486,7 +486,7 @@ namespace UnsafeCollections.Collections.Unsafe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         static K Key<K>(UnsafeHeapMin* heap, int index) where K : unmanaged
         {
-            return *(K*)UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            return *heap->_items.Element<K>(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -494,7 +494,7 @@ namespace UnsafeCollections.Collections.Unsafe
           where K : unmanaged
           where V : unmanaged
         {
-            var ptr = UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            var ptr = heap->_items.Element(index);
 
             // read key
             key = *(K*)(ptr);
@@ -508,10 +508,10 @@ namespace UnsafeCollections.Collections.Unsafe
           where K : unmanaged
           where V : unmanaged
         {
-            var ptr = UnsafeBuffer.Element(heap->_items.Ptr, index, heap->_items.Stride);
+            var ptr = heap->_items.Element(index);
 
             // write key
-            *(K*)(ptr) = key;
+            *(K*)ptr = key;
 
             // write val, offset by keyStride
             *(V*)((byte*)ptr + heap->_keyStride) = val;

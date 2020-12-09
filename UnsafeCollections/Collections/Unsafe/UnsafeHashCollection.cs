@@ -161,7 +161,7 @@ namespace UnsafeCollections.Collections.Unsafe
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Entry* GetEntry(UnsafeHashCollection* collection, int index)
         {
-            return (Entry*)UnsafeBuffer.Element(collection->Entries.Ptr, index, collection->Entries.Stride);
+            return collection->Entries.Element<Entry>(index);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -264,7 +264,7 @@ namespace UnsafeCollections.Collections.Unsafe
                 }
 
                 // grab 'next' element maintained by _count
-                entry = (Entry*)UnsafeBuffer.Element(collection->Entries.Ptr, collection->UsedCount, collection->Entries.Stride);
+                entry = collection->Entries.Element<Entry>(collection->UsedCount);
 
                 // step up used count
                 collection->UsedCount = collection->UsedCount + 1;

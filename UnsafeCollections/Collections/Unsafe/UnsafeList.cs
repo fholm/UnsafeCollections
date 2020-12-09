@@ -186,7 +186,7 @@ namespace UnsafeCollections.Collections.Unsafe
             if (count < items.Length)
             {
                 // set element 
-                *(T*)UnsafeBuffer.Element(items.Ptr, count, items.Stride) = item;
+                *items.Element<T>(count) = item;
 
                 // increment count
                 list->_count = count + 1;
@@ -209,7 +209,7 @@ namespace UnsafeCollections.Collections.Unsafe
             UDebug.Assert(count < items.Length);
 
             // set element 
-            *(T*)UnsafeBuffer.Element(items.Ptr, count, items.Stride) = item;
+            *items.Element<T>(count) = item;
 
             // increment count
             list->_count = count + 1;
@@ -226,7 +226,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             var items = list->_items;
-            *(T*)UnsafeBuffer.Element(items.Ptr, index, items.Stride) = item;
+            *items.Element<T>(index) = item;
         }
 
         public static T Get<T>(UnsafeList* list, int index) where T : unmanaged
@@ -245,7 +245,7 @@ namespace UnsafeCollections.Collections.Unsafe
             }
 
             var items = list->_items;
-            return (T*)UnsafeBuffer.Element(items.Ptr, index, items.Stride);
+            return items.Element<T>(index);
         }
 
         public static ref T GetRef<T>(UnsafeList* list, int index) where T : unmanaged
@@ -307,7 +307,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
             for (int i = 0; i < count; ++i)
             {
-                var cmp = *(T*)UnsafeBuffer.Element(items.Ptr, i, items.Stride);
+                var cmp = *items.Element<T>(i);
                 if (cmp.Equals(item))
                 {
                     return i;
@@ -326,7 +326,7 @@ namespace UnsafeCollections.Collections.Unsafe
 
             for (int i = count - 1; i >= 0; --i)
             {
-                var cmp = *(T*)UnsafeBuffer.Element(items.Ptr, i, items.Stride);
+                var cmp = *items.Element<T>(i);
                 if (cmp.Equals(item))
                 {
                     return i;
