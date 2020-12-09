@@ -25,7 +25,6 @@ THE SOFTWARE.
 
 using System;
 using System.Runtime.CompilerServices;
-using UnsafeCollections.Unsafe;
 #if UNITY
 using Unity.Collections.LowLevel.Unsafe;
 #endif

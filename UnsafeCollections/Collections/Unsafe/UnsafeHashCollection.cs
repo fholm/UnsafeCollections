@@ -26,7 +26,6 @@ THE SOFTWARE.
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
 {

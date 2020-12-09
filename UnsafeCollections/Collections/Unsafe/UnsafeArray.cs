@@ -27,7 +27,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnsafeCollections.Unsafe;
 #if UNITY
 using Unity.Collections.LowLevel.Unsafe;
 #endif

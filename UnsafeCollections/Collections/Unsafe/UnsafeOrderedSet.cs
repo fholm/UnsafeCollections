@@ -27,7 +27,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
-using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
 {

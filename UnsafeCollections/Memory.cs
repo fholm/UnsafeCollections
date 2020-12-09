@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using Unity.Collections.LowLevel.Unsafe;
 #endif
 
-namespace UnsafeCollections.Unsafe
+namespace UnsafeCollections
 {
     public static unsafe class Memory
     {

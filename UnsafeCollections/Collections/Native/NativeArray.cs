@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using UnsafeCollections.Collections.Unsafe;
 using UnsafeCollections.Debug.TypeProxies;
-using UnsafeCollections.Unsafe;
 #if UNITY
 using Unity.Collections.LowLevel.Unsafe;
 #endif
@@ -167,6 +166,9 @@ namespace UnsafeCollections.Collections.Native
 
         public T[] ToArray()
         {
+            if (Length == 0)
+                return Array.Empty<T>();
+
             var arr = new T[Length];
 
             Copy(this, arr, arr.Length);

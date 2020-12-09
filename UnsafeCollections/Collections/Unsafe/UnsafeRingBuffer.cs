@@ -24,7 +24,6 @@ THE SOFTWARE.
 */
 
 using System;
-using UnsafeCollections.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
 {
