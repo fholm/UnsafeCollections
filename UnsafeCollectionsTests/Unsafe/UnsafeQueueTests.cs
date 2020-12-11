@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using UnsafeCollections;
 using UnsafeCollections.Collections.Unsafe;
 
@@ -106,13 +107,45 @@ namespace UnsafeCollectionsTests.Unsafe
         [Test]
         public void ExpandTest()
         {
-            throw new NotImplementedException();
+            var q = UnsafeQueue.Allocate<int>(10);
+
+            SplitQueue(q);
+
+            UnsafeQueue.Enqueue(q, 10);
+            UnsafeQueue.Enqueue(q, 11);
+            UnsafeQueue.Enqueue(q, 12);
+
+            int num = 0;
+            foreach (int i in UnsafeQueue.GetEnumerator<int>(q))
+            {
+                Assert.AreEqual(num, i);
+                num++;
+            }
+
+            UnsafeQueue.Free(q);
         }
 
         [Test]
         public void TryActionTest()
         {
-            throw new NotImplementedException();
+            var q = UnsafeQueue.Allocate<int>(10, true);
+
+            SplitQueue(q);
+
+            Assert.IsFalse(UnsafeQueue.TryEnqueue(q, 10));
+            Assert.IsTrue(UnsafeQueue.TryPeek(q, out int result));
+            Assert.AreEqual(0, result);
+
+            for (int i = 0; i < 10; i++)
+            {
+                Assert.IsTrue(UnsafeQueue.TryDequeue(q, out int val));
+                Assert.AreEqual(i, val);
+            }
+
+            //Empty queue
+            Assert.IsFalse(UnsafeQueue.TryPeek(q, out int res));
+
+            UnsafeQueue.Free(q);
         }
 
         [Test]
@@ -179,6 +212,52 @@ namespace UnsafeCollectionsTests.Unsafe
             {
                 Assert.AreEqual(i, arr[i]);
             }
+        }
+
+        //[Test]
+        //This test may fail on the odd chance that the threads do not interfere with each other.
+        public void ConcurrencyTest()
+        {
+            int count = 1000;
+            var q = UnsafeQueue.Allocate<int>(10, true);
+            byte faulted = 0;
+
+            Thread reader = new Thread(() =>
+            {
+                for (int i = 0; i < count;)
+                {
+                    if (UnsafeQueue.TryDequeue<int>(q, out int result))
+                    {
+                        if(i == result)
+                        {
+                            i++;
+                        }
+                        else
+                        {
+                            Thread.VolatileWrite(ref faulted, 1);
+                            break;
+                        }
+                    }
+                }
+
+            });
+
+            reader.Start();
+
+            for (int i = 0; i < count;)
+            {
+                if (Thread.VolatileRead(ref faulted) > 0) break;
+
+                if (UnsafeQueue.TryEnqueue(q, i))
+                {
+                    i++;
+                }
+            }
+
+            reader.Join();
+
+            Assert.IsTrue(faulted > 0);
+            UnsafeQueue.Free(q);
         }
     }
 }

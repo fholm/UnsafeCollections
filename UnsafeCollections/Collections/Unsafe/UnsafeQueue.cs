@@ -36,6 +36,7 @@ namespace UnsafeCollections.Collections.Unsafe
         const string QUEUE_FIXED_SIZE_FULL = "Fixed size queue full";
 
         UnsafeBuffer _items;
+        IntPtr _typeHandle;
         int _count;
 
         int _head;
@@ -43,13 +44,9 @@ namespace UnsafeCollections.Collections.Unsafe
 
         public static UnsafeQueue* Allocate<T>(int capacity, bool fixedSize = false) where T : unmanaged
         {
-            return Allocate(capacity, sizeof(T), fixedSize);
-        }
-
-        public static UnsafeQueue* Allocate(int capacity, int stride, bool fixedSize = false)
-        {
             UDebug.Assert(capacity > 0);
-            UDebug.Assert(stride > 0);
+
+            int stride = sizeof(T);
 
             UnsafeQueue* queue;
 
@@ -82,6 +79,7 @@ namespace UnsafeCollections.Collections.Unsafe
             queue->_head = 0;
             queue->_tail = 0;
             queue->_count = 0;
+            queue->_typeHandle = typeof(T).TypeHandle.Value;
 
             return queue;
         }
@@ -153,6 +151,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             var count = queue->_count;
             var items = queue->_items;
@@ -195,6 +194,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             var count = queue->_count;
             if (count == 0)
@@ -218,6 +218,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             if (queue->_count == 0)
             {
@@ -241,6 +242,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             if (queue->_count == 0)
             {
@@ -262,6 +264,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             if (queue->_count == 0)
             {
@@ -280,6 +283,7 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             int count = queue->_count;
             int head = queue->_head;
@@ -303,7 +307,9 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
             UDebug.Assert(destination != null);
+            UDebug.Always(destinationIndex > -1);
 
 
             int numToCopy = queue->_count;
@@ -368,6 +374,8 @@ namespace UnsafeCollections.Collections.Unsafe
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
+
             return new Enumerator<T>(queue);
         }
 
