@@ -257,11 +257,6 @@ namespace UnsafeCollections.Collections.Unsafe
 
         public static T Peek<T>(UnsafeQueue* queue) where T : unmanaged
         {
-            return *PeekPtr<T>(queue);
-        }
-
-        public static T* PeekPtr<T>(UnsafeQueue* queue) where T : unmanaged
-        {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
@@ -271,12 +266,7 @@ namespace UnsafeCollections.Collections.Unsafe
                 throw new InvalidOperationException(QUEUE_EMPTY);
             }
 
-            return queue->_items.Element<T>(queue->_head);
-        }
-
-        public static ref T PeekRef<T>(UnsafeQueue* queue) where T : unmanaged
-        {
-            return ref *PeekPtr<T>(queue);
+            return *queue->_items.Element<T>(queue->_head);
         }
 
         public static bool Contains<T>(UnsafeQueue* queue, T item) where T : unmanaged, IEquatable<T>

@@ -4,7 +4,7 @@ using System.Text;
 
 namespace UnsafeCollections.Collections.Native
 {
-    public interface INativeCollection<T> where T : unmanaged
+    internal interface INativeCollection<T> where T : unmanaged
     {
         /// <summary>
         /// The number of items in the collection
@@ -16,6 +16,6 @@ namespace UnsafeCollections.Collections.Native
         /// </summary>
         /// <param name="array">The destination array</param>
         /// <param name="index">The index of the array to copy to</param>
-        void CopyTo(Array array, int index);
+        T[] ToArray();
     }
 }
