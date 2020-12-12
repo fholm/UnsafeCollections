@@ -1,25 +1,22 @@
-﻿using UnsafeCollections.Collections.Native;
+﻿using System;
+using System.Diagnostics;
+using UnsafeCollections.Collections.Native;
 
 namespace UnsafeCollections.Debug.TypeProxies
 {
     internal struct NativeArrayDebugView<T> where T : unmanaged
     {
-        private readonly NativeArray<T> m_array;
+        private readonly INativeArray<T> m_array;
 
-        public NativeArrayDebugView(NativeArray<T> array)
+        public NativeArrayDebugView(INativeArray<T> array)
         {
-            if (!array.IsCreated)
-                throw new System.ArgumentException(nameof(array));
+            if (array == null || !array.IsCreated)
+                throw new ArgumentNullException(nameof(array));
 
             m_array = array;
         }
 
-        public T[] Items
-        {
-            get
-            {
-                return m_array.ToArray();
-            }
-        }
+        [DebuggerBrowsable(DebuggerBrowsableState.RootHidden)]
+        public T[] Items => m_array.ToArray();
     }
 }

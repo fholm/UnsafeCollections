@@ -299,7 +299,7 @@ namespace UnsafeCollections.Collections.Unsafe
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
             UDebug.Assert(destination != null);
-            UDebug.Always(destinationIndex > -1);
+            UDebug.Assert(destinationIndex > -1);
 
 
             int numToCopy = queue->_count;

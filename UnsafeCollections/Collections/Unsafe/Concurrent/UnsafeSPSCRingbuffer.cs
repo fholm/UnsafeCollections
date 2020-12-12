@@ -36,6 +36,9 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
     /// </summary>
     public unsafe struct UnsafeSPSCRingbuffer
     {
+        const string DESTINATION_TOO_SMALL = "Destination too small.";
+
+
         UnsafeBuffer _items;
         IntPtr _typeHandle;
         HeadAndTail _headAndTail;
@@ -140,8 +143,9 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             SpinWait spinner = default;
-            var nextTail = Volatile.Read(ref queue->_headAndTail.Tail) + 1;
+            var tail = Volatile.Read(ref queue->_headAndTail.Tail);
             var currentHead = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextTail = tail + 1;
 
             var wrap = nextTail - queue->_items.Length;
 
@@ -152,7 +156,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                 spinner.SpinOnce();
             }
 
-            int nextIndex = (int)(nextTail & queue->_mask);
+            int nextIndex = (int)(tail & queue->_mask);
             *queue->_items.Element<T>(nextIndex) = item;
 
             Volatile.Write(ref queue->_headAndTail.Tail, nextTail);
@@ -167,8 +171,9 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
-            var nextTail = Volatile.Read(ref queue->_headAndTail.Tail) + 1;
+            var tail = Volatile.Read(ref queue->_headAndTail.Tail);
             var currentHead = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextTail = tail + 1;
 
             var wrap = nextTail - queue->_items.Length;
 
@@ -177,7 +182,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                 return false;
             }
 
-            int nextIndex = (int)(nextTail & queue->_mask);
+            int nextIndex = (int)(tail & queue->_mask);
             *queue->_items.Element<T>(nextIndex) = item;
 
             Volatile.Write(ref queue->_headAndTail.Tail, nextTail);
@@ -194,14 +199,15 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             SpinWait spinner = default;
-            var nextHead = Volatile.Read(ref queue->_headAndTail.Head) + 1;
+            var head = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextHead = head + 1;
 
             while (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
             {
                 spinner.SpinOnce();
             }
 
-            int nextIndex = (int)(nextHead & queue->_mask);
+            int nextIndex = (int)(head & queue->_mask);
             var result = *queue->_items.Element<T>(nextIndex);
             Volatile.Write(ref queue->_headAndTail.Head, nextHead);
 
@@ -217,7 +223,8 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
-            var nextHead = Volatile.Read(ref queue->_headAndTail.Head) + 1;
+            var head = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextHead = head + 1;
 
             if (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
             {
@@ -225,7 +232,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                 return false;
             }
 
-            int nextIndex = (int)(nextHead & queue->_mask);
+            int nextIndex = (int)(head & queue->_mask);
             result = *queue->_items.Element<T>(nextIndex);
             Volatile.Write(ref queue->_headAndTail.Head, nextHead);
 
@@ -238,7 +245,8 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
-            var nextHead = Volatile.Read(ref queue->_headAndTail.Head) + 1;
+            var head = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextHead = head + 1;
 
             if (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
             {
@@ -246,23 +254,44 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                 return false;
             }
 
-            int nextIndex = (int)(nextHead & queue->_mask);
+            int nextIndex = (int)(head & queue->_mask);
             result = *queue->_items.Element<T>(nextIndex);
 
             return true;
         }
 
         /// <summary>
-        /// Copies the current snapshot of the queue.
+        /// Peeks the next item in the queue. Blocks the thread until an item is available.
         /// </summary>
-        internal static void CopyTo<T>(UnsafeSPSCRingbuffer* queue, void* destination, int destinationIndex) where T : unmanaged
+        public static T Peek<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
-            UDebug.Assert(destination != null);
-            UDebug.Always(destinationIndex > -1);
 
+            SpinWait spinner = default;
+            var head = Volatile.Read(ref queue->_headAndTail.Head);
+            var nextHead = head + 1;
+
+            while (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
+            {
+                spinner.SpinOnce();
+            }
+
+            int nextIndex = (int)(head & queue->_mask);
+            return *queue->_items.Element<T>(nextIndex);
+        }
+
+        /// <summary>
+        /// Returns a snapshot of the elements. 
+        /// Mainly used for debug information
+        /// </summary>
+        /// <returns></returns>
+        internal static T[] ToArray<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        {
+            UDebug.Assert(queue != null);
+            UDebug.Assert(queue->_items.Ptr != null);
+            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             var head = Volatile.Read(ref queue->_headAndTail.Head);
             var tail = Volatile.Read(ref queue->_headAndTail.Tail);
@@ -275,7 +304,31 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                 tail - head :
                 queue->_items.Length - head + tail;
 
+            if (count <= 0)
+                return Array.Empty<T>();
 
+            var arr = new T[count];
+
+            int numToCopy = (int)count;
+            int bufferLength = queue->_items.Length;
+            int ihead = (int)head;
+
+            int firstPart = Math.Min(bufferLength - ihead, numToCopy);
+
+            fixed (void* ptr = arr)
+            {
+                UnsafeBuffer.CopyTo<T>(queue->_items, ihead, ptr, 0, firstPart);
+                numToCopy -= firstPart;
+
+                if (numToCopy > 0)
+                    UnsafeBuffer.CopyTo<T>(queue->_items, 0, ptr, 0 + bufferLength - ihead, numToCopy);
+            }
+
+            for (int i = 0; i < 16; i++)
+            {
+                System.Diagnostics.Debug.WriteLine(*queue->_items.Element<int>(i));
+            }
+            return arr;
         }
 
         /// <summary>
@@ -290,9 +343,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             throw new NotImplementedException();
         }
 
-
         //https://source.dot.net/#System.Private.CoreLib/ConcurrentQueueSegment.cs,ec7a63152c0fbc9e
-        //https://software.intel.com/content/www/us/en/develop/articles/single-producer-single-consumer-queue.html
 
         [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
         private struct HeadAndTail

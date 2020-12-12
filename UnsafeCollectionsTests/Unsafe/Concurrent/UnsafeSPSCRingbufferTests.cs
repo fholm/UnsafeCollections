@@ -89,8 +89,7 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
             for (int i = 0; i < 10; i++)
             {
-                UnsafeSPSCRingbuffer.TryPeek(q, out int num);
-                Assert.AreEqual(4, num);
+                Assert.AreEqual(4, UnsafeSPSCRingbuffer.Peek<int>(q));
             }
 
             //Verify no items are dequeued
@@ -124,11 +123,12 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
             //Inserts 10 items.
             SplitQueue(q);
-
+            var arr = UnsafeSPSCRingbuffer.ToArray<int>(q);
             //Insert 6 more to fill the queue
             for (int i = 0; i < 6; i++)
                 UnsafeSPSCRingbuffer.TryEnqueue(q, 999);
 
+            arr = UnsafeSPSCRingbuffer.ToArray<int>(q);
             Assert.IsFalse(UnsafeSPSCRingbuffer.TryEnqueue(q, 10));
             Assert.IsTrue(UnsafeSPSCRingbuffer.TryPeek(q, out int result));
             Assert.AreEqual(0, result);
@@ -203,11 +203,7 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
             var q = UnsafeSPSCRingbuffer.Allocate<int>(10);
             SplitQueue(q);
 
-            var arr = new int[10];
-            fixed (void* ptr = arr)
-            {
-                UnsafeSPSCRingbuffer.CopyTo<int>(q, ptr, 0);
-            }
+            var arr = UnsafeSPSCRingbuffer.ToArray<int>(q);
 
             for (int i = 0; i < 10; i++)
             {

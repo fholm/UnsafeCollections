@@ -1,6 +1,6 @@
 ﻿namespace UnsafeCollections.Collections.Native
 {
-    internal interface INativeCollection<T> where T : unmanaged
+    internal interface INativeArray<T> where T : unmanaged
     {
         /// <summary>
         /// Returns 'True' if the underlying buffer is allocated.
@@ -10,7 +10,7 @@
         /// <summary>
         /// The number of items in the collection
         /// </summary>
-        int Count { get; }
+        int Length { get; }
 
         /// <summary>
         /// Copies a collection into an array.

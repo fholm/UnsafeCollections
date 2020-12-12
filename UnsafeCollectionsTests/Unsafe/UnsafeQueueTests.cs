@@ -228,7 +228,7 @@ namespace UnsafeCollectionsTests.Unsafe
                 {
                     if (UnsafeQueue.TryDequeue<int>(q, out int result))
                     {
-                        if(i == result)
+                        if (i == result)
                         {
                             i++;
                         }
