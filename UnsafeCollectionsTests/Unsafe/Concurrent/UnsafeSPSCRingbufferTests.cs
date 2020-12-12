@@ -1,5 +1,7 @@
 ﻿using NUnit.Framework;
 using System;
+using System.Diagnostics;
+using System.Threading;
 using UnsafeCollections;
 using UnsafeCollections.Collections.Unsafe.Concurrent;
 
@@ -209,6 +211,33 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
             {
                 Assert.AreEqual(i, arr[i]);
             }
+        }
+
+        //[Test]
+        public void ConcurrencyTest()
+        {
+            var q = UnsafeSPSCRingbuffer.Allocate<int>(16);
+            int count = 10000;
+
+            Thread reader = new Thread(() =>
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    if (i != UnsafeSPSCRingbuffer.Dequeue<int>(q))
+                        Assert.Fail("Dequeue gave an unexpected result");
+                }
+            });
+
+            reader.Start();
+
+            for (int i = 0; i < count; i++)
+            {
+                UnsafeSPSCRingbuffer.Enqueue(q, i);
+            }
+
+            reader.Join();
+
+            UnsafeSPSCRingbuffer.Free(q);
         }
     }
 }

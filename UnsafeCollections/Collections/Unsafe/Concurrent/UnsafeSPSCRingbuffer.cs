@@ -339,8 +339,8 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
-            //TODO
-            throw new NotImplementedException();
+
+            return new Enumerator<T>(queue);
         }
 
         //https://source.dot.net/#System.Private.CoreLib/ConcurrentQueueSegment.cs,ec7a63152c0fbc9e
@@ -359,33 +359,96 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
 
         public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
         {
-            public T Current => throw new NotImplementedException();
+            // Enumerates over the provided SPSCRingBuffer. Enumeration counts as a READ/Consume operation.
+            // The amount of items enumerated can vary depending on if the TAIL moves during enumeration.
+            // The HEAD is frozen in place when the enumerator is created. This means that the maximum 
+            // amount of items read is always the capacity of the queue and no more.
+            const string HEAD_MOVED_FAULT = "Enumerator was invalidated by dequeue operation!";
 
-            object IEnumerator.Current => throw new NotImplementedException();
+            readonly UnsafeSPSCRingbuffer* _queue;
+            readonly long _headStart;
+            readonly int _mask;
+            int _index;
+            T* _current;
+
+            internal Enumerator(UnsafeSPSCRingbuffer* queue)
+            {
+                _queue = queue;
+                _index = -1;
+                _current = default;
+                _headStart = Volatile.Read(ref queue->_headAndTail.Head);
+                _mask = queue->_mask;
+            }
 
             public void Dispose()
             {
-                throw new NotImplementedException();
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                throw new NotImplementedException();
+                _index = -2;
+                _current = default;
             }
 
             public bool MoveNext()
             {
-                throw new NotImplementedException();
+                if (_index == -2)
+                    return false;
+
+                var head = Volatile.Read(ref _queue->_headAndTail.Head);
+                if (_headStart != head)
+                    throw new InvalidOperationException(HEAD_MOVED_FAULT);
+
+                var headIndex = head + ++_index;
+                var nextHead = headIndex + 1;
+
+                //No more data. Abort immediately
+                if (Volatile.Read(ref _queue->_headAndTail.Tail) < nextHead)
+                {
+                    _current = default;
+                    return false;
+                }
+
+                int nextIndex = (int)(headIndex & _queue->_mask);
+                _current = _queue->_items.Element<T>(nextIndex);
+
+                return true;
             }
 
             public void Reset()
             {
-                throw new NotImplementedException();
+                _index = -1;
+                _current = default;
             }
 
+            public T Current
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get
+                {
+                    UDebug.Assert(_current != null);
+                    return *_current;
+                }
+            }
+
+            object IEnumerator.Current
+            {
+                get
+                {
+                    if (_index < 0)
+                        throw new InvalidOperationException();
+
+                    return Current;
+                }
+            }
+
+            public Enumerator<T> GetEnumerator()
+            {
+                return this;
+            }
+            IEnumerator<T> IEnumerable<T>.GetEnumerator()
+            {
+                return this;
+            }
             IEnumerator IEnumerable.GetEnumerator()
             {
-                throw new NotImplementedException();
+                return this;
             }
         }
     }

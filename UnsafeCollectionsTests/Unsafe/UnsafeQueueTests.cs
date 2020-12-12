@@ -214,39 +214,35 @@ namespace UnsafeCollectionsTests.Unsafe
             }
         }
 
-        //[Test]
-        //This test may fail on the odd chance that the threads do not interfere with each other.
+        [Test]
+        //Demonstration that this queue is not thread safe!
         public void ConcurrencyTest()
         {
-            int count = 1000;
-            var q = UnsafeQueue.Allocate<int>(10, true);
-            byte faulted = 0;
+            int count = 10000;
+            var q = UnsafeQueue.Allocate<int>(16, true);
+            int faulted = 0;
 
             Thread reader = new Thread(() =>
             {
-                for (int i = 0; i < count;)
+                for (int i = 0; i < count; i++)
                 {
-                    if (UnsafeQueue.TryDequeue<int>(q, out int result))
+                    if (UnsafeQueue.TryDequeue(q, out int result))
                     {
-                        if (i == result)
+                        if (i != result)
                         {
-                            i++;
-                        }
-                        else
-                        {
-                            Thread.VolatileWrite(ref faulted, 1);
+                            Interlocked.Increment(ref faulted);
                             break;
                         }
                     }
                 }
-
             });
 
             reader.Start();
 
             for (int i = 0; i < count;)
             {
-                if (Thread.VolatileRead(ref faulted) > 0) break;
+                if (faulted != 0)
+                    break;
 
                 if (UnsafeQueue.TryEnqueue(q, i))
                 {
