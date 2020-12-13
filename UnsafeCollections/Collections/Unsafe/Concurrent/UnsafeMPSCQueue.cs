@@ -31,13 +31,9 @@ using System.Threading;
 
 namespace UnsafeCollections.Collections.Unsafe.Concurrent
 {
-    /// <summary>
-    /// A ringbuffer that acts as a queue. Buffer has a fixed size.
-    /// </summary>
-    public unsafe struct UnsafeSPSCRingbuffer
+    public unsafe struct UnsafeMPSCQueue
     {
         const string DESTINATION_TOO_SMALL = "Destination too small.";
-
 
         UnsafeBuffer _items;
         IntPtr _typeHandle;
@@ -47,23 +43,23 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         /// <summary>
         /// Allocates a new SPSCRingbuffer. Capacity will be set to a power of 2.
         /// </summary>
-        public static UnsafeSPSCRingbuffer* Allocate<T>(int capacity) where T : unmanaged
+        public static UnsafeMPSCQueue* Allocate<T>(int capacity) where T : unmanaged
         {
             UDebug.Assert(capacity > 0);
 
             capacity = Memory.RoundUpToPowerOf2(capacity);
             int stride = sizeof(T);
 
-            UnsafeSPSCRingbuffer* queue;
+            UnsafeMPSCQueue* queue;
 
             var alignment = Memory.GetAlignment(stride);
-            var sizeOfQueue = Memory.RoundToAlignment(sizeof(UnsafeSPSCRingbuffer), alignment);
+            var sizeOfQueue = Memory.RoundToAlignment(sizeof(UnsafeMPSCQueue), alignment);
             var sizeOfArray = stride * capacity;
 
             var ptr = Memory.MallocAndZero(sizeOfQueue + sizeOfArray, alignment);
 
             // cast ptr to queue
-            queue = (UnsafeSPSCRingbuffer*)ptr;
+            queue = (UnsafeMPSCQueue*)ptr;
 
             // initialize fixed buffer from same block of memory as the stack
             UnsafeBuffer.InitFixed(&queue->_items, (byte*)ptr + sizeOfQueue, capacity, stride);
@@ -75,7 +71,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             return queue;
         }
 
-        public static void Free(UnsafeSPSCRingbuffer* queue)
+        public static void Free(UnsafeMPSCQueue* queue)
         {
             if (queue == null)
                 return;
@@ -87,7 +83,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             Memory.Free(queue);
         }
 
-        public static bool IsEmpty<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        public static bool IsEmpty<T>(UnsafeMPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -98,7 +94,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             return (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead);
         }
 
-        public static int GetCapacity(UnsafeSPSCRingbuffer* queue)
+        public static int GetCapacity(UnsafeMPSCQueue* queue)
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -106,7 +102,11 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             return queue->_items.Length;
         }
 
-        public static int GetCount(UnsafeSPSCRingbuffer* queue)
+        /// <summary>
+        /// Gets the current count of the queue.
+        /// Value becomes stale if enqueue/dequeue operations happen.
+        /// </summary>
+        public static int GetCount(UnsafeMPSCQueue* queue)
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -125,7 +125,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             return 0;
         }
 
-        public static void Clear(UnsafeSPSCRingbuffer* queue)
+        public static void Clear(UnsafeMPSCQueue* queue)
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -134,65 +134,45 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         }
 
         /// <summary>
-        /// Enqueues an item in the queue. Blocks the thread until there is space in the queue.
+        /// Tries to enqueue an item in the queue. Returns false if there's no space in the queue.
         /// </summary>
-        public static void Enqueue<T>(UnsafeSPSCRingbuffer* queue, T item) where T : unmanaged
+        public static bool TryEnqueue<T>(UnsafeMPSCQueue* queue, T item) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             SpinWait spinner = default;
-            var tail = Volatile.Read(ref queue->_headAndTail.Tail);
-            var currentHead = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextTail = tail + 1;
 
-            var wrap = nextTail - queue->_items.Length;
+            var head = Volatile.Read(ref queue->_headAndTail.Head);
 
-            while (wrap > currentHead)
+            while (true)
             {
-                //Full queue, wait for space
-                currentHead = Volatile.Read(ref queue->_headAndTail.Head);
+                var tail = Volatile.Read(ref queue->_headAndTail.Tail);
+                var wrap = tail + 1 - queue->_items.Length;
+
+                if (wrap > head)
+                    return false;
+
+                //TODO We SHOULD write first before updating the tail... but how?
+                if (Interlocked.CompareExchange(ref queue->_headAndTail.Tail, tail + 1, tail) == tail)
+                {
+                    // Won the race.
+                    int nextIndex = (int)(tail & queue->_mask);
+                    *queue->_items.Element<T>(nextIndex) = item;
+
+                    return true;
+                } 
+
+                // Lost the race. Try again after spinning
                 spinner.SpinOnce();
             }
-
-            int nextIndex = (int)(tail & queue->_mask);
-            *queue->_items.Element<T>(nextIndex) = item;
-
-            Volatile.Write(ref queue->_headAndTail.Tail, nextTail);
-        }
-
-        /// <summary>
-        /// Tries to enqueue an item in the queue. Returns false if there's no space in the queue.
-        /// </summary>
-        public static bool TryEnqueue<T>(UnsafeSPSCRingbuffer* queue, T item) where T : unmanaged
-        {
-            UDebug.Assert(queue != null);
-            UDebug.Assert(queue->_items.Ptr != null);
-            UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
-
-            var tail = Volatile.Read(ref queue->_headAndTail.Tail);
-            var currentHead = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextTail = tail + 1;
-
-            var wrap = nextTail - queue->_items.Length;
-
-            if (wrap > currentHead)
-            {
-                return false;
-            }
-
-            int nextIndex = (int)(tail & queue->_mask);
-            *queue->_items.Element<T>(nextIndex) = item;
-
-            Volatile.Write(ref queue->_headAndTail.Tail, nextTail);
-            return true;
         }
 
         /// <summary>
         /// Dequeues an item from the queue. Blocks the thread until there is space in the queue.
         /// </summary>
-        public static T Dequeue<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        public static T Dequeue<T>(UnsafeMPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -200,16 +180,15 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
 
             SpinWait spinner = default;
             var head = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextHead = head + 1;
 
-            while (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
+            while (Volatile.Read(ref queue->_headAndTail.Tail) <= head)
             {
                 spinner.SpinOnce();
             }
 
             int nextIndex = (int)(head & queue->_mask);
             var result = *queue->_items.Element<T>(nextIndex);
-            Volatile.Write(ref queue->_headAndTail.Head, nextHead);
+            Volatile.Write(ref queue->_headAndTail.Head, head + 1);
 
             return result;
         }
@@ -217,16 +196,15 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         /// <summary>
         /// Tries to dequeue an item from the queue. Returns false if there's no items in the queue.
         /// </summary>
-        public static bool TryDequeue<T>(UnsafeSPSCRingbuffer* queue, out T result) where T : unmanaged
+        public static bool TryDequeue<T>(UnsafeMPSCQueue* queue, out T result) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             var head = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextHead = head + 1;
 
-            if (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
+            if (Volatile.Read(ref queue->_headAndTail.Tail) <= head)
             {
                 result = default;
                 return false;
@@ -234,21 +212,20 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
 
             int nextIndex = (int)(head & queue->_mask);
             result = *queue->_items.Element<T>(nextIndex);
-            Volatile.Write(ref queue->_headAndTail.Head, nextHead);
+            Volatile.Write(ref queue->_headAndTail.Head, head + 1);
 
             return true;
         }
 
-        public static bool TryPeek<T>(UnsafeSPSCRingbuffer* queue, out T result) where T : unmanaged
+        public static bool TryPeek<T>(UnsafeMPSCQueue* queue, out T result) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
             UDebug.Assert(typeof(T).TypeHandle.Value == queue->_typeHandle);
 
             var head = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextHead = head + 1;
 
-            if (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
+            if (Volatile.Read(ref queue->_headAndTail.Tail) <= head)
             {
                 result = default;
                 return false;
@@ -263,7 +240,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         /// <summary>
         /// Peeks the next item in the queue. Blocks the thread until an item is available.
         /// </summary>
-        public static T Peek<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        public static T Peek<T>(UnsafeMPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -271,9 +248,8 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
 
             SpinWait spinner = default;
             var head = Volatile.Read(ref queue->_headAndTail.Head);
-            var nextHead = head + 1;
 
-            while (Volatile.Read(ref queue->_headAndTail.Tail) < nextHead)
+            while (Volatile.Read(ref queue->_headAndTail.Tail) <= head)
             {
                 spinner.SpinOnce();
             }
@@ -287,7 +263,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         /// Mainly used for debug information
         /// </summary>
         /// <returns></returns>
-        internal static T[] ToArray<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        internal static T[] ToArray<T>(UnsafeMPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -324,17 +300,13 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
                     UnsafeBuffer.CopyTo<T>(queue->_items, 0, ptr, 0 + bufferLength - ihead, numToCopy);
             }
 
-            for (int i = 0; i < 16; i++)
-            {
-                System.Diagnostics.Debug.WriteLine(*queue->_items.Element<int>(i));
-            }
             return arr;
         }
 
         /// <summary>
         /// Creates an enumerator for the current snapshot of the queue.
         /// </summary>
-        public static Enumerator<T> GetEnumerator<T>(UnsafeSPSCRingbuffer* queue) where T : unmanaged
+        public static Enumerator<T> GetEnumerator<T>(UnsafeMPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -351,10 +323,10 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             private const int CACHE_LINE_SIZE = 64;
 
             [FieldOffset(1 * CACHE_LINE_SIZE)]
-            public long Head;
+            public int Head;
 
             [FieldOffset(2 * CACHE_LINE_SIZE)]
-            public long Tail;
+            public int Tail;
         }
 
         public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
@@ -365,13 +337,13 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             // amount of items read is always the capacity of the queue and no more.
             const string HEAD_MOVED_FAULT = "Enumerator was invalidated by dequeue operation!";
 
-            readonly UnsafeSPSCRingbuffer* _queue;
+            readonly UnsafeMPSCQueue* _queue;
             readonly long _headStart;
             readonly int _mask;
             int _index;
             T* _current;
 
-            internal Enumerator(UnsafeSPSCRingbuffer* queue)
+            internal Enumerator(UnsafeMPSCQueue* queue)
             {
                 _queue = queue;
                 _index = -1;
