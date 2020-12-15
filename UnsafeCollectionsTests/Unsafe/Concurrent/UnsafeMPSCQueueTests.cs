@@ -92,7 +92,8 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
             for (int i = 0; i < 10; i++)
             {
-                Assert.AreEqual(4, UnsafeMPSCQueue.Peek<int>(q));
+                UnsafeMPSCQueue.TryPeek(q, out int result);
+                Assert.AreEqual(4, result);
             }
 
             //Verify no items are dequeued
@@ -126,12 +127,11 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
             //Inserts 10 items.
             SplitQueue(q);
-            var arr = UnsafeMPSCQueue.ToArray<int>(q);
+
             //Insert 6 more to fill the queue
             for (int i = 0; i < 6; i++)
                 UnsafeMPSCQueue.TryEnqueue(q, 999);
 
-            arr = UnsafeMPSCQueue.ToArray<int>(q);
             Assert.IsFalse(UnsafeMPSCQueue.TryEnqueue(q, 10));
             Assert.IsTrue(UnsafeMPSCQueue.TryPeek(q, out int result));
             Assert.AreEqual(0, result);
@@ -174,10 +174,10 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
         {
             var q = UnsafeMPSCQueue.Allocate<int>(10);
 
-            //Wrap tail around
+            // Wrap tail around
             SplitQueue(q);
 
-            //Iterator should start from the head.
+            // Iterator should start from the head.
             int num = 0;
             foreach (int i in UnsafeMPSCQueue.GetEnumerator<int>(q))
             {
@@ -185,6 +185,8 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
                 num++;
             }
 
+            // Iterated 10 items
+            Assert.AreEqual(10, num);
             UnsafeMPSCQueue.Free(q);
         }
 
@@ -214,11 +216,40 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
             }
         }
 
-        //[Test]
-        //Demonstration that this queue is SPSC
-        public void ConcurrencyTest()
+        [Test]
+        public void ConcurrentIteratorTest()
         {
-            var q = UnsafeMPSCQueue.Allocate<int>(16);
+            var q = UnsafeMPSCQueue.Allocate<int>(1000);
+            int count = 1000;
+
+
+            Thread reader = new Thread(() =>
+            {
+                for (int i = 0; i < count; i++)
+                    UnsafeMPSCQueue.TryEnqueue(q, i);
+            });
+
+            reader.Start();
+
+            // Wait so we have some data to copy.
+            Thread.Sleep(1);
+
+            var num = 0;
+            foreach (int i in UnsafeMPSCQueue.GetEnumerator<int>(q))
+            {
+                Assert.AreEqual(num++, i);
+            }
+
+            reader.Join();
+
+            UnsafeMPSCQueue.Free(q);
+        }
+
+        [Test]
+        //Demonstration that this queue is SPSC
+        public void SPSCConcurrencyTest()
+        {
+            var q = UnsafeMPSCQueue.Allocate<ComplexType>(16);
             int count = 10000;
 
 
@@ -226,12 +257,8 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
             {
                 for (int i = 0; i < count; i++)
                 {
-                    var num = UnsafeMPSCQueue.Dequeue<int>(q);
-                    //Assert.AreEqual(i, num)
-                    if (i != num)
-                    {
-                        Assert.Fail("Dequeue gave an unexpected result");
-                    }
+                    var num = UnsafeMPSCQueue.Dequeue<ComplexType>(q);
+                    Assert.IsTrue(num.Equals(new ComplexType((ushort)i)));
                 }
             });
 
@@ -239,7 +266,7 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
             for (int i = 0; i < count;)
             {
-                if (UnsafeMPSCQueue.TryEnqueue(q, i))
+                if (UnsafeMPSCQueue.TryEnqueue(q, new ComplexType((ushort)i)))
                     i++;
             }
 
@@ -250,7 +277,7 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
 
         [Test]
         // Demonstration that this queue is MPSC
-        public void ConcurrencyTest2()
+        public void MPSCConcurrencyTest()
         {
             var q = UnsafeMPSCQueue.Allocate<int>(16000);
             int count = 10000;
@@ -279,6 +306,26 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
             Assert.AreEqual(count, UnsafeMPSCQueue.GetCount(q));
 
             UnsafeMPSCQueue.Free(q);
+        }
+
+        private struct ComplexType : IEquatable<ComplexType>
+        {
+            ushort num1;
+            ushort num2;
+            ushort num3;
+
+            public ComplexType(ushort num)
+            {
+                num1 = num2 = num3 = num;
+            }
+
+            public bool Equals(ComplexType other)
+            {
+                return
+                    num1 == other.num1 &&
+                    num2 == other.num2 &&
+                    num3 == other.num3;
+            }
         }
     }
 }

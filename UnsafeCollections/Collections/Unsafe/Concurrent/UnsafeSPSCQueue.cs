@@ -25,6 +25,7 @@ THE SOFTWARE.
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -40,9 +41,9 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
 
 
         UnsafeBuffer _items;
-        IntPtr _typeHandle;
+        IntPtr _typeHandle; // Readonly
         HeadAndTail _headAndTail;
-        int _mask; //readonly
+        int _mask;          // Readonly
 
         /// <summary>
         /// Allocates a new SPSCRingbuffer. Capacity will be set to a power of 2.
@@ -277,11 +278,10 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         }
 
         /// <summary>
-        /// Returns a snapshot of the elements. 
-        /// Mainly used for debug information
+        /// Returns a snapshot of the elements in the queue.
         /// </summary>
         /// <returns></returns>
-        internal static T[] ToArray<T>(UnsafeSPSCQueue* queue) where T : unmanaged
+        public static T[] ToArray<T>(UnsafeSPSCQueue* queue) where T : unmanaged
         {
             UDebug.Assert(queue != null);
             UDebug.Assert(queue->_items.Ptr != null);
@@ -338,6 +338,7 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
         }
 
         [StructLayout(LayoutKind.Explicit, Size = 3 * CACHE_LINE_SIZE)]
+        [DebuggerDisplay("Head = {Head}, Tail = {Tail}")]
         private struct HeadAndTail
         {
             private const int CACHE_LINE_SIZE = 64;
@@ -348,6 +349,8 @@ namespace UnsafeCollections.Collections.Unsafe.Concurrent
             [FieldOffset(2 * CACHE_LINE_SIZE)]
             public long Tail;
         }
+
+
 
         public unsafe struct Enumerator<T> : IUnsafeEnumerator<T> where T : unmanaged
         {

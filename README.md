@@ -20,7 +20,8 @@ Project is targeted as a .Net 2.0 Standard library. Usable in Unity via dll.
 - Hash Set
 - Ordered Map (Not Complete, Public API Missing)
 - Ordered Set
-- Concurrent Single Producer Single Consumer Queue (SPCS, lockless)
+- Concurrent SPSC Queue
+- Concurrent MPSC Queue
 
 ## Planned Additions
 

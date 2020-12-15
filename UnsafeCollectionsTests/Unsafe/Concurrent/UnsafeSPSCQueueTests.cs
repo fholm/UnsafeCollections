@@ -171,16 +171,19 @@ namespace UnsafeCollectionsTests.Unsafe.Concurrent
         {
             var q = UnsafeSPSCQueue.Allocate<int>(10);
 
-            //Wrap tail around
+            // Wrap tail around
             SplitQueue(q);
 
-            //Iterator should start from the head.
+            // Iterator should start from the head.
             int num = 0;
             foreach (int i in UnsafeSPSCQueue.GetEnumerator<int>(q))
             {
                 Assert.AreEqual(num, i);
                 num++;
             }
+
+            // Iterated 10 items
+            Assert.AreEqual(10, num);
 
             UnsafeSPSCQueue.Free(q);
         }

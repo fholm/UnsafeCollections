@@ -24,6 +24,7 @@ THE SOFTWARE.
 */
 
 using System;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 #if UNITY
 using Unity.Collections.LowLevel.Unsafe;
@@ -31,6 +32,7 @@ using Unity.Collections.LowLevel.Unsafe;
 
 namespace UnsafeCollections.Collections.Unsafe
 {
+    [DebuggerDisplay("Length = {Length}, Stride = {Stride}, Dynamic = {Dynamic}")]
     internal unsafe struct UnsafeBuffer
     {
 #if UNITY
@@ -38,9 +40,9 @@ namespace UnsafeCollections.Collections.Unsafe
 #endif
         internal void* Ptr;
 
-        internal int Length;
-        internal int Stride;
-        internal int Dynamic;
+        internal int Length;  // Read-only
+        internal int Stride;  // Read-only
+        internal int Dynamic; // Read-only
 
         public static void InitFixed<T>(UnsafeBuffer* buffer, void* ptr, int length) where T : unmanaged
         {
@@ -102,6 +104,11 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void Clear(UnsafeBuffer* buffer)
         {
             Memory.ZeroMem(buffer->Ptr, buffer->Length * buffer->Stride);
+        }
+
+        public void Clear()
+        {
+            Memory.ZeroMem(Ptr, Length * Stride);
         }
 
         public static void Copy(UnsafeBuffer source, int sourceIndex, UnsafeBuffer destination, int destinationIndex, int count)
@@ -196,6 +203,13 @@ namespace UnsafeCollections.Collections.Unsafe
         public static void* Element(void* bufferPtr, int index, int stride)
         {
             return (byte*)bufferPtr + (index * stride);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void* Element(int index, int offset)
+        {
+            UDebug.Assert(index <= Length);
+            return (byte*)Ptr + (index * Stride) + offset;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

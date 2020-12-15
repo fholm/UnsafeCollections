@@ -4,11 +4,12 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using UnsafeCollections.Collections.Unsafe;
+using UnsafeCollections.Debug.TypeProxies;
 
 namespace UnsafeCollections.Collections.Native
 {
-    //[DebuggerDisplay("Length = {Length}")]
-    //[DebuggerTypeProxy(typeof(NativeArrayDebugView<>))]
+    [DebuggerDisplay("Count = {Length}")]
+    [DebuggerTypeProxy(typeof(NativeCollectionDebugView<>))]
     public unsafe struct NativeQueue<T> : IDisposable, IEnumerable<T>, IEnumerable where T : unmanaged
     {
         private UnsafeQueue* m_inner;
