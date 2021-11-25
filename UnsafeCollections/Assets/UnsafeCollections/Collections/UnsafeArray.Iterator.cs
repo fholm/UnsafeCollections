@@ -73,7 +73,11 @@ namespace Collections.Unsafe {
       public void Dispose() {
       }
 
-      public IEnumerator<T> GetEnumerator() {
+      public Iterator<T> GetEnumerator() {
+        return this;
+      }
+
+      IEnumerator<T> IEnumerable<T>.GetEnumerator() {
         return this;
       }
 
