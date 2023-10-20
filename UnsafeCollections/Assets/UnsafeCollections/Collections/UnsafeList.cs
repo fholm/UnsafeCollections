@@ -72,6 +72,8 @@ namespace Collections.Unsafe {
     }
     
     public static void Free(UnsafeList* list) {
+      if(list->_items.Dynamic == 1)
+        UnsafeBuffer.Free(&list->_items);
       Native.Free(list);
     }
 
