@@ -184,6 +184,43 @@ namespace Collections.Unsafe {
       list->_count = count + 1;
     }
 
+    public static void Insert<T>(UnsafeList* list, int index, T item) where T : unmanaged {
+      Assert.Check(list != null);
+
+      var count = list->_count;
+      var items = list->_items;
+
+      // cast to uint trick, which eliminates < 0 check
+      if ((uint)index > (uint)count)
+      {
+          throw new IndexOutOfRangeException();
+      }
+
+      if (count >= items.Length)
+      {
+          if (items.Dynamic == 0)
+          {
+              throw new InvalidOperationException(LIST_FULL);
+          }
+
+          // double capacity, make sure that if length is 0 then we set capacity to at least 2
+          SetCapacity(list, Math.Max(2, items.Length * 2));
+
+          // re-assign items after expand
+          items = list->_items;
+
+          Assert.Check(count < items.Length);
+      }
+
+      if(index < count)
+      {
+          UnsafeBuffer.Move(items, index, index + 1, count - index);
+      }
+
+      *(T*)UnsafeBuffer.Element(items.Ptr, index, items.Stride) = item;
+      list->_count = count + 1;
+    }
+
     public static void Set<T>(UnsafeList* list, int index, T item) where T : unmanaged {
       Assert.Check(list != null);
 
