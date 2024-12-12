@@ -148,7 +148,8 @@ namespace Collections.Unsafe {
     }
 
     public static Entry* Find<T>(UnsafeHashCollection* collection, T value, int valueHash) where T : unmanaged, IEquatable<T> {
-      var bucketHead = collection->Buckets[valueHash % collection->Entries.Length];
+      uint bucketHash = (uint)valueHash % (uint)collection->Entries.Length;
+      var bucketHead = collection->Buckets[bucketHash];
 
       while (bucketHead != null) {
         if (bucketHead->Hash == valueHash && value.Equals(*(T*)((byte*)bucketHead + collection->KeyOffset))) {
@@ -163,8 +164,8 @@ namespace Collections.Unsafe {
     }
 
     public static bool Remove<T>(UnsafeHashCollection* collection, T value, int valueHash) where T : unmanaged, IEquatable<T> {
-      var bucketHash = valueHash % collection->Entries.Length;
-      var bucketHead = collection->Buckets[valueHash % collection->Entries.Length];
+      uint bucketHash = (uint)valueHash % (uint)collection->Entries.Length;
+      var bucketHead = collection->Buckets[bucketHash];
       var bucketPrev = default(Entry*);
 
       while (bucketHead != null) {
@@ -237,7 +238,7 @@ namespace Collections.Unsafe {
       }
 
       // compute bucket hash
-      var bucketHash = valueHash % collection->Entries.Length;
+      uint bucketHash = (uint)valueHash % (uint)collection->Entries.Length;
 
       // hook up entry
       entry->Hash  = valueHash;
@@ -285,7 +286,7 @@ namespace Collections.Unsafe {
       for (int i = collection->Entries.Length - 1; i >= 0; --i) {
         var entry = (Entry*)((byte*)newEntries.Ptr + (i * newEntries.Stride));
         if (entry->State == EntryState.Used) {
-          var bucketHash = entry->Hash % capacity;
+          uint bucketHash = (uint)entry->Hash % (uint)capacity;
 
           // assign current entry in buckets as next
           entry->Next = newBuckets[bucketHash];
